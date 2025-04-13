@@ -1,6 +1,5 @@
-
 // This is a file processing service with audio transcription capabilities
-// In a real app, this would connect to a backend for audio processing
+// Uses Web Speech API for speech-to-text conversion
 
 export interface FileRecord {
   id: string;
@@ -64,7 +63,7 @@ export const uploadFile = async (
   saveUserFiles(userId, userFiles);
 
   try {
-    // Process the audio file for direct transcription
+    // Process the audio file for real transcription
     const transcriptionText = await transcribeAudioFile(file);
     
     // Update file record with completed status and transcription
@@ -90,6 +89,8 @@ export const uploadFile = async (
       fileRecord: updatedFileRecord 
     };
   } catch (error) {
+    console.error('Transcription error:', error);
+    
     // Handle transcription failure
     const failedRecord: FileRecord = {
       ...newFileRecord,
@@ -109,38 +110,81 @@ export const uploadFile = async (
   }
 };
 
-// Direct audio file transcription - using Web Speech API or browser capabilities
+// Audio file transcription using Web Speech API
 const transcribeAudioFile = async (file: File): Promise<string> => {
-  // In a real application, this would use a proper speech-to-text API
-  // For this demonstration, we'll extract the raw audio content
-  
-  // Read the file as an ArrayBuffer
-  const arrayBuffer = await file.arrayBuffer();
-  const audioContent = new Uint8Array(arrayBuffer);
-  
-  // Simulate processing time based on file size
-  await new Promise(resolve => setTimeout(resolve, file.size / 2000));
-  
-  // Create a simplistic transcription based on file metadata
-  // In a real app, this would use a proper STT service like Google Speech-to-Text, AWS Transcribe, or Whisper
-  const fileInfo = `
+  return new Promise((resolve, reject) => {
+    // Check if browser supports SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      reject('Speech recognition not supported in this browser');
+      return;
+    }
+    
+    // Convert the file to an audio element for playing
+    const audioURL = URL.createObjectURL(file);
+    const audio = new Audio(audioURL);
+    
+    // Initialize speech recognition
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    let transcript = '';
+    
+    // Handle recognition results
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          transcript += event.results[i][0].transcript + ' ';
+        }
+      }
+    };
+    
+    // Handle errors
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error', event.error);
+      reject(`Speech recognition error: ${event.error}`);
+    };
+    
+    // Handle end of recognition
+    recognition.onend = () => {
+      if (transcript.trim()) {
+        // Add metadata to the transcript
+        const result = `
 AUDIO TRANSCRIPTION
 ==================
 File: ${file.name}
-Size: ${(file.size / 1024 / 1024).toFixed(2)} MB
+Size: ${(file.fileSize / 1024 / 1024).toFixed(2) || (file.size / 1024 / 1024).toFixed(2)} MB
 Type: ${file.type}
 Transcribed: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
 
 CONTENT:
-This is the direct transcription of the audio file "${file.name}".
-The actual content would be determined by processing the audio data which contains ${audioContent.length} bytes of information.
-In a production environment, this would use a proper speech recognition service to accurately convert the speech to text.
-
-For demonstration purposes, we've created this placeholder text.
-When implemented with a real transcription service, the exact words spoken in the audio would appear here.
+${transcript.trim()}
 `;
-
-  return fileInfo;
+        resolve(result);
+      } else {
+        reject('No speech was recognized. Please try again with a clearer audio file.');
+      }
+    };
+    
+    // Start recognition when audio starts playing
+    audio.onplay = () => {
+      recognition.start();
+    };
+    
+    // Stop recognition when audio ends
+    audio.onended = () => {
+      recognition.stop();
+    };
+    
+    // Start playing the audio
+    audio.play().catch(err => {
+      console.error('Error playing audio:', err);
+      reject(`Error playing audio: ${err.message}`);
+    });
+  });
 };
 
 // Delete a file
@@ -182,3 +226,11 @@ export const sendResultsViaEmail = async (
     message: `Results for "${file.originalFileName}" successfully sent to ${email}` 
   };
 };
+
+// Type definition for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
