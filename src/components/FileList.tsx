@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { 
   FileText, 
-  FilePdf, 
+  FileIcon, 
   FileCheck, 
   Mail, 
   Download, 
@@ -247,7 +247,7 @@ const FileList = ({ files, onFilesChanged }: FileListProps) => {
                                   size="sm"
                                   className="flex items-center space-x-1"
                                 >
-                                  <FilePdf className="h-4 w-4" />
+                                  <FileIcon className="h-4 w-4" />
                                   <span>PDF</span>
                                 </Button>
                               </TooltipTrigger>
