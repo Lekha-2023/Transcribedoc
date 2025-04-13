@@ -1,3 +1,4 @@
+
 // This is a file processing service with audio transcription capabilities
 // Uses Web Speech API for speech-to-text conversion
 
@@ -156,7 +157,7 @@ const transcribeAudioFile = async (file: File): Promise<string> => {
 AUDIO TRANSCRIPTION
 ==================
 File: ${file.name}
-Size: ${(file.fileSize / 1024 / 1024).toFixed(2) || (file.size / 1024 / 1024).toFixed(2)} MB
+Size: ${(file.size / 1024 / 1024).toFixed(2)} MB
 Type: ${file.type}
 Transcribed: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
 
@@ -230,7 +231,7 @@ export const sendResultsViaEmail = async (
 // Type definition for Web Speech API
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
   }
 }
