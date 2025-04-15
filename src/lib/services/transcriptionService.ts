@@ -2,13 +2,27 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const transcribeAudio = async (audioUrl: string) => {
-  const { data: transcriptionData, error: transcriptionError } = await supabase.functions
-    .invoke('transcribe', {
-      body: { audioUrl }
-    });
+  try {
+    console.log('Calling transcribe edge function with URL:', audioUrl);
+    const { data: transcriptionData, error: transcriptionError } = await supabase.functions
+      .invoke('transcribe', {
+        body: { audioUrl }
+      });
 
-  if (transcriptionError) throw transcriptionError;
-  return transcriptionData;
+    if (transcriptionError) {
+      console.error('Transcription error:', transcriptionError);
+      throw transcriptionError;
+    }
+    
+    if (!transcriptionData || !transcriptionData.text) {
+      throw new Error('No transcription data returned from the service');
+    }
+    
+    return transcriptionData;
+  } catch (error) {
+    console.error('Transcription service error:', error);
+    throw new Error(`Transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 };
 
 export const sendResultsViaEmail = async (

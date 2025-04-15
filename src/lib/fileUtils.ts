@@ -11,11 +11,11 @@ export const uploadFile = async (
   file: File, 
   userId: string
 ): Promise<{ success: boolean; fileRecord?: FileRecord; message?: string }> => {
-  const validAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg'];
+  const validAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/webm'];
   if (!validAudioTypes.includes(file.type)) {
     return { 
       success: false, 
-      message: 'Only audio files are accepted (MP3, WAV, OGG)' 
+      message: 'Only audio files are accepted (MP3, WAV, OGG, WEBM)' 
     };
   }
 
@@ -36,8 +36,13 @@ export const uploadFile = async (
   saveUserFiles(userId, userFiles);
 
   try {
+    console.log('Starting file upload to storage...');
     const publicUrl = await uploadToStorage(file, userId, fileId);
+    console.log('File uploaded successfully, URL:', publicUrl);
+    
+    console.log('Starting transcription process...');
     const transcriptionData = await transcribeAudio(publicUrl);
+    console.log('Transcription completed:', transcriptionData);
 
     const updatedFileRecord: FileRecord = {
       ...newFileRecord,
@@ -74,18 +79,20 @@ export const uploadFile = async (
     
     return {
       success: false,
-      message: 'File processing failed. Please try again.'
+      message: error instanceof Error ? error.message : 'File processing failed. Please try again.'
     };
   }
 };
 
 export const deleteFile = async (fileId: string, userId: string): Promise<boolean> => {
   const userFiles = getUserFiles(userId);
-  const updatedFiles = userFiles.filter(file => file.id !== fileId);
+  const fileToDelete = userFiles.find(file => file.id === fileId);
   
-  if (updatedFiles.length === userFiles.length) {
+  if (!fileToDelete) {
     return false;
   }
+  
+  const updatedFiles = userFiles.filter(file => file.id !== fileId);
   
   try {
     await deleteFromStorage(userId, fileId);

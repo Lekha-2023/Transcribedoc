@@ -40,12 +40,12 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
 
   const handleFileSelect = (file: File) => {
     // Check if file is an audio file
-    const validAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg'];
+    const validAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/webm'];
     
     if (!validAudioTypes.includes(file.type)) {
       toast({
         title: "Invalid file type",
-        description: "Please select an audio file (MP3, WAV, OGG)",
+        description: "Please select an audio file (MP3, WAV, OGG, WEBM)",
         variant: "destructive"
       });
       return;
@@ -55,7 +55,7 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !userId) return;
     
     setIsUploading(true);
     setUploadProgress(0);
@@ -94,7 +94,7 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
       
       toast({
         title: "Upload error",
-        description: "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
@@ -135,7 +135,7 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
             </div>
             <div>
               <p className="text-gray-600 mb-2">Drag and drop your audio file here</p>
-              <p className="text-gray-500 text-sm">Supported formats: MP3, WAV, OGG</p>
+              <p className="text-gray-500 text-sm">Supported formats: MP3, WAV, OGG, WEBM</p>
             </div>
             <div className="border-t border-gray-200 w-24 my-4"></div>
             <Button 
@@ -150,7 +150,7 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
               type="file"
               ref={fileInputRef}
               onChange={handleFileInputChange}
-              accept="audio/mpeg,audio/wav,audio/mp3,audio/ogg"
+              accept="audio/mpeg,audio/wav,audio/mp3,audio/ogg,audio/webm"
               className="hidden"
             />
           </div>
