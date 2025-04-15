@@ -18,18 +18,31 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check authentication status
+    // Check authentication status on component mount and set up listener
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(!!data.session);
+      console.log("Auth check in AudioUploader:", !!data.session);
     };
     
     checkAuth();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setIsAuthenticated(!!session);
+        console.log("Auth state changed:", event, !!session);
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -69,12 +82,15 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
   const handleUpload = async () => {
     if (!selectedFile || !userId) return;
     
-    if (!isAuthenticated) {
+    // Check authentication again right before upload
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
       toast({
         title: "Authentication required",
-        description: "Please log in again to upload files",
+        description: "Your session has expired. Please log out and log in again.",
         variant: "destructive"
       });
+      setIsAuthenticated(false);
       return;
     }
     
@@ -90,6 +106,7 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
     }, 300);
     
     try {
+      console.log("Starting file upload with authenticated status:", isAuthenticated);
       const result = await uploadFile(selectedFile, userId);
       
       clearInterval(progressInterval);

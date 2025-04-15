@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AudioUploader from "@/components/AudioUploader";
 import FileList from "@/components/FileList";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const [files, setFiles] = useState<FileRecord[]>([]);
@@ -20,8 +21,8 @@ const Dashboard = () => {
   const user = getCurrentUser();
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated()) {
+    // First check if we have a local user
+    if (!isAuthenticated() || !user) {
       toast({
         title: "Authentication required",
         description: "Please log in to access the dashboard",
@@ -31,8 +32,38 @@ const Dashboard = () => {
       return;
     }
     
+    // Then verify Supabase session is valid
+    const checkSupabaseAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        console.log("Supabase session not found, redirecting to login");
+        toast({
+          title: "Session expired",
+          description: "Please log in again to continue",
+          variant: "destructive"
+        });
+        logoutUser(); // Clear local auth state
+        navigate("/login");
+      }
+    };
+    
+    checkSupabaseAuth();
     loadFiles();
-  }, [navigate]);
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          logoutUser();
+          navigate("/login");
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
 
   const loadFiles = () => {
     setIsLoading(true);
@@ -45,13 +76,23 @@ const Dashboard = () => {
     setIsLoading(false);
   };
 
-  const handleLogout = () => {
-    logoutUser();
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out"
-    });
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      logoutUser();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out"
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout failed",
+        description: "An error occurred during logout",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleFileUploaded = () => {
