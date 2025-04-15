@@ -66,7 +66,7 @@ const Register = () => {
     setIsLoading(true);
     
     try {
-      const result = registerUser(name, email, password);
+      const result = await registerUser(name, email, password);
       
       if (result.success) {
         toast({
