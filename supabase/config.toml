@@ -1,5 +1,5 @@
 
 project_id = "ostaldphsoiputdakucu"
 
-[storage.audio-files]
-public = true
+[functions.send-contact-confirmation]
+verify_jwt = false

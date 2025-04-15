@@ -17,7 +17,7 @@ const Index = () => {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 md:pt-40 md:pb-32 bg-gradient-to-b from-medical-gray to-white">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col-reverse md:flex-row items-center">
+          <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mt-10 md:mt-0 md:pr-12">
               <h1 className="text-4xl md:text-5xl font-bold text-medical-dark leading-tight">
                 Convert Medical Audio to Text <span className="text-medical-teal">Effortlessly</span>
@@ -40,13 +40,24 @@ const Index = () => {
               </div>
             </div>
             <div className="md:w-1/2 flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-medical-teal/20 rounded-full blur-3xl"></div>
-                <img 
-                  src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
-                  alt="Medical professional with headphones" 
-                  className="relative z-10 rounded-lg shadow-2xl max-w-full h-auto object-cover"
-                />
+              <div className="relative w-full h-80 md:h-96 rounded-lg overflow-hidden shadow-2xl">
+                <div className="absolute inset-0 bg-medical-teal/20 rounded-lg"></div>
+                <video 
+                  className="w-full h-full object-cover rounded-lg"
+                  autoPlay 
+                  muted 
+                  loop
+                  playsInline
+                >
+                  <source src="https://cdn.pixabay.com/vimeo/498889260/medical-70494.mp4?width=640&hash=7b7ffeb73d0f6dcaf61fcc4ffd9734fed4af7e39" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-r from-medical-dark/50 to-transparent flex items-center">
+                  <div className="p-6 text-white max-w-md">
+                    <h3 className="text-2xl font-bold mb-2">See how it works</h3>
+                    <p className="text-white/90">Upload your audio and get accurate transcriptions in minutes</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
