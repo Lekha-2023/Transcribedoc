@@ -44,19 +44,7 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Send contact data to the server
-      const { error } = await supabase.from("contact_messages").insert([
-        {
-          name: data.name,
-          email: data.email,
-          subject: data.subject,
-          message: data.message,
-        },
-      ]);
-
-      if (error) throw error;
-
-      // Send confirmation email via Supabase Edge Function (assumed to be created)
+      // Since the contact_messages table doesn't exist yet, we'll only call the edge function
       await supabase.functions.invoke("send-contact-confirmation", {
         body: {
           name: data.name,
