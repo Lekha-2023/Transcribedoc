@@ -21,6 +21,7 @@ const Register = () => {
     email?: string;
     password?: string;
     confirmPassword?: string;
+    general?: string;
   }>({});
   
   const { toast } = useToast();
@@ -64,6 +65,7 @@ const Register = () => {
     if (!validateForm()) return;
     
     setIsLoading(true);
+    setErrors({});
     
     try {
       const result = await registerUser(name, email, password);
@@ -80,12 +82,19 @@ const Register = () => {
           description: result.message,
           variant: "destructive"
         });
+        setErrors({
+          general: result.message
+        });
       }
     } catch (error) {
+      console.error("Registration error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
+      });
+      setErrors({
+        general: error instanceof Error ? error.message : "Registration failed"
       });
     } finally {
       setIsLoading(false);
@@ -102,6 +111,12 @@ const Register = () => {
             <h1 className="text-2xl font-bold text-medical-dark">Create an Account</h1>
             <p className="text-gray-500 mt-2">Sign up to start converting your audio to text</p>
           </div>
+          
+          {errors.general && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-500 text-sm rounded">
+              {errors.general}
+            </div>
+          )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

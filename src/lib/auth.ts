@@ -60,7 +60,7 @@ export const registerUser = async (name: string, email: string, password: string
   
   try {
     // Register with Supabase
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -70,7 +70,10 @@ export const registerUser = async (name: string, email: string, password: string
       }
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
     
     // Create new user in local storage
     users[email] = {
@@ -94,13 +97,20 @@ export const registerUser = async (name: string, email: string, password: string
 // Login user
 export const loginUser = async (email: string, password: string): Promise<{ success: boolean; message: string; user?: User; token?: string }> => {
   try {
+    console.log("Attempting login with:", { email, password });
+    
     // Log in with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+    
+    console.log("Supabase login response:", data);
     
     const users = getUsers();
     
@@ -119,7 +129,7 @@ export const loginUser = async (email: string, password: string): Promise<{ succ
     const token = data.session?.access_token || `mock-jwt-token-${Date.now()}`;
     
     const user: User = {
-      id: email,
+      id: data.user?.id || email,
       name: users[email].name,
       email
     };
@@ -143,7 +153,7 @@ export const loginUser = async (email: string, password: string): Promise<{ succ
     console.error("Login error:", error);
     return { 
       success: false, 
-      message: error instanceof Error ? error.message : 'Login failed' 
+      message: error instanceof Error ? error.message : 'Invalid login credentials' 
     };
   }
 };

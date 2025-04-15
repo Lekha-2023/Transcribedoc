@@ -47,6 +47,7 @@ const Login = () => {
     if (!validateForm()) return;
     
     setIsLoading(true);
+    setErrors({});
     
     try {
       const result = await loginUser(email, password);
@@ -59,14 +60,18 @@ const Login = () => {
         navigate("/dashboard");
       } else {
         setErrors({
-          general: result.message
+          general: result.message || "Invalid login credentials"
         });
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
+      });
+      setErrors({
+        general: error instanceof Error ? error.message : "Authentication failed"
       });
     } finally {
       setIsLoading(false);
