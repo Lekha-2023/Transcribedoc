@@ -67,6 +67,10 @@ export const uploadFile = async (
   } catch (error) {
     console.error('Processing error:', error);
     
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'File processing failed. Please try again.';
+    
     const failedRecord: FileRecord = {
       ...newFileRecord,
       status: 'failed'
@@ -79,7 +83,7 @@ export const uploadFile = async (
     
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'File processing failed. Please try again.'
+      message: errorMessage
     };
   }
 };
