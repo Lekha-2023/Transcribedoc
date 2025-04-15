@@ -10,9 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const uploadToStorage = async (file: File, userId: string, fileId: string) => {
   try {
+    // Create a folder path with the userId to enforce RLS
+    const filePath = `${userId}/${fileId}`;
+    console.log(`Uploading file to path: ${filePath}`);
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('audio-files')
-      .upload(`${userId}/${fileId}`, file, {
+      .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
       });
@@ -22,9 +26,11 @@ export const uploadToStorage = async (file: File, userId: string, fileId: string
       throw uploadError;
     }
 
+    console.log('Upload successful:', uploadData);
+
     const { data: { publicUrl } } = supabase.storage
       .from('audio-files')
-      .getPublicUrl(`${userId}/${fileId}`);
+      .getPublicUrl(filePath);
 
     return publicUrl;
   } catch (error) {
@@ -35,9 +41,12 @@ export const uploadToStorage = async (file: File, userId: string, fileId: string
 
 export const deleteFromStorage = async (userId: string, fileId: string): Promise<void> => {
   try {
+    // Use the proper folder structure with userId
+    const filePath = `${userId}/${fileId}`;
+    
     const { error } = await supabase.storage
       .from('audio-files')
-      .remove([`${userId}/${fileId}`]);
+      .remove([filePath]);
 
     if (error) {
       console.error('Storage delete error:', error);

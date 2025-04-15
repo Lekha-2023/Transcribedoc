@@ -19,6 +19,13 @@ export const uploadFile = async (
     };
   }
 
+  if (!userId) {
+    return {
+      success: false,
+      message: 'User authentication required'
+    };
+  }
+
   const fileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
   const newFileRecord: FileRecord = {
@@ -36,7 +43,7 @@ export const uploadFile = async (
   saveUserFiles(userId, userFiles);
 
   try {
-    console.log('Starting file upload to storage...');
+    console.log('Starting file upload to storage for user:', userId);
     const publicUrl = await uploadToStorage(file, userId, fileId);
     console.log('File uploaded successfully, URL:', publicUrl);
     
