@@ -1,12 +1,11 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
-import { loginUser } from "@/lib/auth";
+import { Loader2, Trash2 } from "lucide-react";
+import { loginUser, clearAllAuthData } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -76,6 +75,14 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleClearData = () => {
+    clearAllAuthData();
+    toast({
+      title: "Data cleared",
+      description: "All saved login data has been removed.",
+    });
   };
 
   return (
@@ -158,6 +165,17 @@ const Login = () => {
                 Create Account
               </Link>
             </p>
+          </div>
+
+          <div className="mt-6 pt-6 border-t">
+            <Button 
+              variant="outline" 
+              className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+              onClick={handleClearData}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Clear All Saved Login Data
+            </Button>
           </div>
         </Card>
       </div>

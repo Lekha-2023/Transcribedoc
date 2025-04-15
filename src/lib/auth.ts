@@ -1,4 +1,3 @@
-
 // This is a mock authentication service that simulates login/registration
 // In a real application, this would connect to a backend service
 
@@ -47,6 +46,16 @@ const saveUsers = (users: Record<string, { name: string; email: string; password
 // Save auth state to localStorage
 const saveAuthState = (authState: AuthState) => {
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
+};
+
+// Clear all stored auth data
+export const clearAllAuthData = () => {
+  // Clear local storage keys
+  localStorage.removeItem(USERS_STORAGE_KEY);
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  
+  // Sign out from Supabase
+  supabase.auth.signOut();
 };
 
 // Register a new user
