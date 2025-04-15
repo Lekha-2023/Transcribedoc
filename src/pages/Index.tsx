@@ -49,7 +49,7 @@ const Index = () => {
                   loop
                   playsInline
                 >
-                  <source src="https://cdn.pixabay.com/vimeo/498889260/medical-70494.mp4?width=640&hash=7b7ffeb73d0f6dcaf61fcc4ffd9734fed4af7e39" type="video/mp4" />
+                  <source src="https://player.vimeo.com/external/498889260.sd.mp4?s=fb54d61893689b0acca6fae91f437de4cc0a5793&profile_id=164&oauth2_token_id=57447761" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
                 <div className="absolute inset-0 bg-gradient-to-r from-medical-dark/50 to-transparent flex items-center">
