@@ -14,11 +14,17 @@ export const uploadToStorage = async (file: File, userId: string, fileId: string
     const filePath = `${userId}/${fileId}`;
     console.log(`Uploading file to path: ${filePath}`);
     
+    // Ensure the user is authenticated before uploading
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error('User is not authenticated');
+    }
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('audio-files')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: true // Change to true to allow updating existing files
       });
 
     if (uploadError) {

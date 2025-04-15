@@ -1,11 +1,12 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Upload, X, FileAudio } from "lucide-react";
 import { uploadFile } from "@/lib/fileUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AudioUploaderProps {
   userId: string;
@@ -17,8 +18,19 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+  }, []);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -56,6 +68,15 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
 
   const handleUpload = async () => {
     if (!selectedFile || !userId) return;
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in again to upload files",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsUploading(true);
     setUploadProgress(0);

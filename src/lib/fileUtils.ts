@@ -3,6 +3,7 @@ import { FileRecord } from "./types/file";
 import { getUserFiles, saveUserFiles } from "./storage/localStorageManager";
 import { uploadToStorage, deleteFromStorage } from "./storage/fileStorage";
 import { transcribeAudio, sendResultsViaEmail as sendResults } from "./services/transcriptionService";
+import { supabase } from "@/integrations/supabase/client";
 
 export type { FileRecord };
 export { getUserFiles };
@@ -23,6 +24,15 @@ export const uploadFile = async (
     return {
       success: false,
       message: 'User authentication required'
+    };
+  }
+
+  // Check if user is authenticated with Supabase
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session) {
+    return {
+      success: false,
+      message: 'Supabase authentication required. Please log in again.'
     };
   }
 
@@ -74,9 +84,17 @@ export const uploadFile = async (
   } catch (error) {
     console.error('Processing error:', error);
     
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'File processing failed. Please try again.';
+    let errorMessage = 'File processing failed. Please try again.';
+    
+    if (error instanceof Error) {
+      if (error.message.includes('row-level security policy')) {
+        errorMessage = 'Permission denied: Cannot upload file due to security policy. Please log out and log in again.';
+      } else if (error.message.includes('bucket not found') || error.message.includes('Bucket not found')) {
+        errorMessage = 'Storage configuration issue: Please contact support.';
+      } else {
+        errorMessage = `Error: ${error.message}`;
+      }
+    }
     
     const failedRecord: FileRecord = {
       ...newFileRecord,
