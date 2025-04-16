@@ -26,7 +26,7 @@ const ResetPassword = () => {
 
   // Extract the access token from the URL hash
   useEffect(() => {
-    // Example URL: http://localhost:3000/#access_token=eyJhbGciOiJ...&type=recovery
+    // Example URL: http://localhost:3000/reset-password#access_token=eyJhbGciOiJ...&type=recovery
     const hash = window.location.hash;
     console.log("URL hash:", hash);
     
@@ -38,7 +38,7 @@ const ResetPassword = () => {
         ?.split("=")[1];
       
       if (accessToken) {
-        console.log("Access token found");
+        console.log("Access token found:", accessToken.substring(0, 10) + "...");
         setAccessToken(accessToken);
       } else {
         setErrors({
@@ -89,7 +89,7 @@ const ResetPassword = () => {
     setIsLoading(true);
     
     try {
-      // Pass the token when updating the password
+      // Call the updatePassword function with the password
       const result = await updatePassword(password);
       
       if (result.success) {

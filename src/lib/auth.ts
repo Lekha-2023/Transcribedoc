@@ -176,9 +176,12 @@ export const resetPassword = async (email: string): Promise<{ success: boolean; 
       return { success: false, message: 'Email not found' };
     }
     
+    // Get the current origin (domain)
+    const origin = window.location.origin;
+    
     // Send password reset email via Supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/reset-password',
+      redirectTo: `${origin}/reset-password`,
     });
     
     if (error) {
