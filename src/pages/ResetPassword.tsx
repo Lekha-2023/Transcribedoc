@@ -18,21 +18,22 @@ const ResetPassword = () => {
     password?: string;
     confirmPassword?: string;
     general?: string;
+    token?: string;
   }>({});
   const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
   
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Check if there's a token in the URL
   useEffect(() => {
-    const token = searchParams.get("token");
     if (!token) {
       setErrors({
-        general: "Invalid or missing reset token. Please request a new password reset link."
+        token: "Invalid or missing reset token. Please request a new password reset link."
       });
     }
-  }, [searchParams]);
+  }, [token]);
 
   const validateForm = () => {
     const newErrors: {
@@ -59,12 +60,20 @@ const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!token) {
+      setErrors({
+        general: "Missing reset token. Please request a new password reset link."
+      });
+      return;
+    }
+    
     if (!validateForm()) return;
     
     setIsLoading(true);
     
     try {
-      const result = await updatePassword(password);
+      // Pass the token when updating the password
+      const result = await updatePassword(password, token);
       
       if (result.success) {
         toast({
@@ -106,9 +115,9 @@ const ResetPassword = () => {
             <p className="text-gray-500 mt-2">Enter your new password below</p>
           </div>
           
-          {errors.general && (
+          {(errors.general || errors.token) && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-500 text-sm rounded">
-              {errors.general}
+              {errors.general || errors.token}
             </div>
           )}
           
@@ -124,6 +133,7 @@ const ResetPassword = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter new password"
                 className={errors.password ? "border-red-500" : ""}
+                disabled={!token}
               />
               {errors.password && (
                 <p className="mt-1 text-xs text-red-500">{errors.password}</p>
@@ -141,6 +151,7 @@ const ResetPassword = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
                 className={errors.confirmPassword ? "border-red-500" : ""}
+                disabled={!token}
               />
               {errors.confirmPassword && (
                 <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
@@ -150,7 +161,7 @@ const ResetPassword = () => {
             <Button 
               type="submit" 
               className="w-full bg-medical-teal hover:bg-medical-teal/90 text-white"
-              disabled={isLoading}
+              disabled={isLoading || !token}
             >
               {isLoading ? (
                 <>
