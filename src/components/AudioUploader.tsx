@@ -21,9 +21,13 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
   const { toast } = useToast();
-  const { checkSubscriptionRequired, incrementUploadCount } = useUploadLimit(userId);
+  const { isLimitReached, checkSubscriptionRequired, incrementUploadCount } = useUploadLimit(userId);
 
   useEffect(() => {
+    // Check if subscription is required on component mount
+    const limitReached = checkSubscriptionRequired();
+    setShowSubscriptionPrompt(limitReached);
+    
     // Check authentication status on component mount and set up listener
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
@@ -44,9 +48,15 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [checkSubscriptionRequired]);
 
   const handleFileSelect = (file: File) => {
+    // If limit is reached, show subscription prompt
+    if (checkSubscriptionRequired()) {
+      setShowSubscriptionPrompt(true);
+      return;
+    }
+    
     // Check if file is an audio file
     const validAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/mp3', 'audio/ogg', 'audio/webm'];
     
@@ -102,7 +112,7 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
       setUploadProgress(100);
       
       if (result.success) {
-        // Increment upload count
+        // Increment upload count and check if limit is reached
         incrementUploadCount();
         
         toast({
@@ -112,6 +122,11 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
         
         setSelectedFile(null);
         onFileUploaded();
+        
+        // Check if we've now reached the limit after this upload
+        if (checkSubscriptionRequired()) {
+          setShowSubscriptionPrompt(true);
+        }
       } else {
         toast({
           title: "Upload failed",
@@ -136,32 +151,35 @@ const AudioUploader = ({ userId, onFileUploaded }: AudioUploaderProps) => {
     setShowSubscriptionPrompt(false);
   };
 
-  return (
-    <>
-      {showSubscriptionPrompt ? (
+  // Show subscription prompt if limit reached
+  if (showSubscriptionPrompt) {
+    return (
+      <Card className="p-6 bg-white shadow-md">
         <SubscriptionPrompt onClose={closeSubscriptionPrompt} />
-      ) : (
-        <Card className="p-6 bg-white shadow-md">
-          <h2 className="text-xl font-semibold text-medical-dark mb-4">Upload Audio File</h2>
-          
-          <DropZone 
-            selectedFile={selectedFile}
-            onFileSelect={handleFileSelect}
-            onFileRemove={() => setSelectedFile(null)}
-          />
+      </Card>
+    );
+  }
 
-          {selectedFile && (
-            <div className="mt-6 flex justify-center">
-              <UploadProgress 
-                uploadProgress={uploadProgress}
-                onUpload={handleUpload}
-                isUploading={isUploading}
-              />
-            </div>
-          )}
-        </Card>
+  return (
+    <Card className="p-6 bg-white shadow-md">
+      <h2 className="text-xl font-semibold text-medical-dark mb-4">Upload Audio File</h2>
+      
+      <DropZone 
+        selectedFile={selectedFile}
+        onFileSelect={handleFileSelect}
+        onFileRemove={() => setSelectedFile(null)}
+      />
+
+      {selectedFile && (
+        <div className="mt-6 flex justify-center">
+          <UploadProgress 
+            uploadProgress={uploadProgress}
+            onUpload={handleUpload}
+            isUploading={isUploading}
+          />
+        </div>
       )}
-    </>
+    </Card>
   );
 };
 
