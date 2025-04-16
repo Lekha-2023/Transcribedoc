@@ -200,12 +200,8 @@ export const resetPassword = async (email: string): Promise<{ success: boolean; 
 };
 
 // Update password (for reset password flow)
-export const updatePassword = async (password: string, token?: string): Promise<{ success: boolean; message: string }> => {
+export const updatePassword = async (password: string): Promise<{ success: boolean; message: string }> => {
   try {
-    if (!token) {
-      throw new Error("Reset token is required");
-    }
-
     const { error } = await supabase.auth.updateUser({
       password: password
     });
