@@ -22,6 +22,10 @@ const GoogleSignIn = () => {
       });
       
       if (error) {
+        // Handle provider not enabled error
+        if (error.message.includes("provider is not enabled")) {
+          throw new Error("Google sign-in is not enabled. Please contact the administrator to enable Google authentication.");
+        }
         throw error;
       }
       
