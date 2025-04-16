@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Trash2 } from "lucide-react";
-import { loginUser, clearAllAuthData } from "@/lib/auth";
+import { loginUser, clearAllAuthData, resetPassword } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -13,6 +14,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -32,7 +34,7 @@ const Login = () => {
       newErrors.email = "Email is required";
     }
     
-    if (!password) {
+    if (!password && !isResettingPassword) {
       newErrors.password = "Password is required";
     }
     
@@ -74,6 +76,44 @@ const Login = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      setErrors({
+        email: "Please enter your email address"
+      });
+      return;
+    }
+    
+    setIsResettingPassword(true);
+    setErrors({});
+    
+    try {
+      const result = await resetPassword(email);
+      
+      if (result.success) {
+        toast({
+          title: "Reset link sent",
+          description: "Check your email for password reset instructions",
+        });
+      } else {
+        setErrors({
+          general: result.message || "Failed to send reset instructions"
+        });
+      }
+    } catch (error) {
+      console.error("Reset password error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send reset instructions",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -125,9 +165,13 @@ const Login = () => {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
-                <Link to="#" className="text-xs text-medical-blue hover:underline">
-                  Forgot password?
-                </Link>
+                <button 
+                  onClick={handleForgotPassword}
+                  disabled={isResettingPassword}
+                  className="text-xs text-medical-blue hover:underline"
+                >
+                  {isResettingPassword ? "Sending..." : "Forgot password?"}
+                </button>
               </div>
               <Input
                 id="password"
