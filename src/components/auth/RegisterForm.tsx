@@ -2,21 +2,24 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, User, Mail, Lock, Eye, EyeOff, Briefcase, Award } from "lucide-react";
 import { validateRegisterForm, RegisterErrors } from "@/utils/registerValidation";
 import ErrorMessage from "./ErrorMessage";
 
 interface RegisterFormProps {
-  onSubmit: (name: string, email: string, password: string) => Promise<void>;
+  onSubmit: (firstName: string, lastName: string, email: string, password: string, company: string, title: string) => Promise<void>;
   isLoading: boolean;
   errors: RegisterErrors;
 }
 
 const RegisterForm = ({ onSubmit, isLoading, errors }: RegisterFormProps) => {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [company, setCompany] = useState("");
+  const [title, setTitle] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<RegisterErrors>({});
@@ -29,11 +32,11 @@ const RegisterForm = ({ onSubmit, isLoading, errors }: RegisterFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const newValidationErrors = validateRegisterForm(name, email, password, confirmPassword);
+    const newValidationErrors = validateRegisterForm(firstName, lastName, email, password, confirmPassword, company, title);
     setValidationErrors(newValidationErrors);
     
     if (Object.keys(newValidationErrors).length === 0) {
-      await onSubmit(name, email, password);
+      await onSubmit(firstName, lastName, email, password, company, title);
     }
   };
 
@@ -49,29 +52,51 @@ const RegisterForm = ({ onSubmit, isLoading, errors }: RegisterFormProps) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       <ErrorMessage message={validationErrors.general || ""} />
       
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Full Name
-        </label>
-        <div className="relative">
-          <Input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your full name"
-            className={`pl-10 ${validationErrors.name ? "border-red-500" : ""}`}
-          />
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            First Name
+          </label>
+          <div className="relative">
+            <Input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Enter your first name"
+              className={`pl-10 ${validationErrors.firstName ? "border-red-500" : ""}`}
+            />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+          {validationErrors.firstName && (
+            <p className="mt-1 text-xs text-red-500">{validationErrors.firstName}</p>
+          )}
         </div>
-        {validationErrors.name && (
-          <p className="mt-1 text-xs text-red-500">{validationErrors.name}</p>
-        )}
+        
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            Last Name
+          </label>
+          <div className="relative">
+            <Input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Enter your last name"
+              className={`pl-10 ${validationErrors.lastName ? "border-red-500" : ""}`}
+            />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+          {validationErrors.lastName && (
+            <p className="mt-1 text-xs text-red-500">{validationErrors.lastName}</p>
+          )}
+        </div>
       </div>
       
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Email Address
+          Email ID (User ID)
         </label>
         <div className="relative">
           <Input
@@ -79,7 +104,7 @@ const RegisterForm = ({ onSubmit, isLoading, errors }: RegisterFormProps) => {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
+            placeholder="Enter your email ID"
             className={`pl-10 ${validationErrors.email ? "border-red-500" : ""}`}
           />
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -87,6 +112,48 @@ const RegisterForm = ({ onSubmit, isLoading, errors }: RegisterFormProps) => {
         {validationErrors.email && (
           <p className="mt-1 text-xs text-red-500">{validationErrors.email}</p>
         )}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
+            Company Name
+          </label>
+          <div className="relative">
+            <Input
+              id="company"
+              type="text"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="Enter your company name"
+              className={`pl-10 ${validationErrors.company ? "border-red-500" : ""}`}
+            />
+            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+          {validationErrors.company && (
+            <p className="mt-1 text-xs text-red-500">{validationErrors.company}</p>
+          )}
+        </div>
+        
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+            Title
+          </label>
+          <div className="relative">
+            <Input
+              id="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter your title"
+              className={`pl-10 ${validationErrors.title ? "border-red-500" : ""}`}
+            />
+            <Award className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+          {validationErrors.title && (
+            <p className="mt-1 text-xs text-red-500">{validationErrors.title}</p>
+          )}
+        </div>
       </div>
       
       <div>

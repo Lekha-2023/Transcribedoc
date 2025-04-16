@@ -17,11 +17,19 @@ const Register = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleSubmit = async (name: string, email: string, password: string) => {
+  const handleSubmit = async (
+    firstName: string, 
+    lastName: string, 
+    email: string, 
+    password: string, 
+    company: string, 
+    title: string
+  ) => {
     setIsLoading(true);
     setErrors({});
     
     try {
+      const name = `${firstName} ${lastName}`;
       const result = await registerUser(name, email, password);
       
       if (result.success) {
