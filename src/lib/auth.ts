@@ -1,4 +1,3 @@
-
 // This is a mock authentication service that simulates login/registration
 // In a real application, this would connect to a backend service
 
@@ -209,9 +208,6 @@ export const updatePassword = async (password: string, token?: string): Promise<
 
     const { error } = await supabase.auth.updateUser({
       password: password
-    }, {
-      // Include the reset token from the URL
-      allowReauthentication: false, // Ensure the token is used for password reset, not reauthentication
     });
 
     if (error) {
