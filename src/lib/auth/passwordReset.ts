@@ -61,4 +61,3 @@ export const updatePassword = async (password: string): Promise<{ success: boole
     };
   }
 };
-
