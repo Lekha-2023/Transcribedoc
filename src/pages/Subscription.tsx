@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -7,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const Subscription = () => {
   const [isLoading, setIsLoading] = useState<string | null>(null);
@@ -27,6 +25,7 @@ const Subscription = () => {
         "Download as TXT"
       ],
       recommended: false,
+      stripeLink: "https://buy.stripe.com/test_9AQaHv80a6tmd8I9AA",
       priceId: "price_basic" // This would be your actual Stripe price ID
     },
     {
@@ -63,33 +62,9 @@ const Subscription = () => {
     }
   ];
 
-  const handleSubscribe = async (planId: string) => {
-    setIsLoading(planId);
-    
-    try {
-      // Call Supabase Edge Function to create Stripe checkout session
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { planId }
-      });
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url;
-      } else {
-        throw new Error("No checkout URL returned");
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast({
-        title: "Subscription Error",
-        description: error instanceof Error ? error.message : "Failed to start subscription process",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(null);
-    }
+  const handleSubscribe = (stripeLink: string) => {
+    // Redirect directly to the Stripe checkout link
+    window.location.href = stripeLink;
   };
 
   const handleGoBack = () => {
@@ -146,22 +121,14 @@ const Subscription = () => {
                 </div>
                 
                 <Button
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={!!isLoading}
+                  onClick={() => handleSubscribe(plan.stripeLink)}
                   className={`w-full ${
                     plan.recommended
                       ? "bg-medical-teal hover:bg-medical-teal/90 text-white" 
                       : "bg-medical-blue hover:bg-medical-blue/90 text-white"
                   }`}
                 >
-                  {isLoading === plan.id ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>Subscribe</>
-                  )}
+                  Subscribe
                 </Button>
               </Card>
             ))}
