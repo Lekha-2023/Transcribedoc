@@ -1,7 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User, AuthState } from './types';
-import { getUsers, saveUsers, saveAuthState } from './storage';
+import { getUsers, saveUsers, saveAuthState, getInitialAuthState } from './storage';
 
 // Register a new user
 export const registerUser = async (name: string, email: string, password: string): Promise<{ success: boolean; message: string }> => {
@@ -142,4 +141,3 @@ export const getCurrentUser = (): User | null => {
   const authState = getInitialAuthState();
   return authState.user;
 };
-
