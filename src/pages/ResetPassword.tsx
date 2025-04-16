@@ -1,18 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { updatePassword } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PasswordResetForm from "@/components/auth/PasswordResetForm";
+import ErrorMessage from "@/components/auth/ErrorMessage";
 
 const ResetPassword = () => {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     password?: string;
@@ -52,7 +50,7 @@ const ResetPassword = () => {
     }
   }, []);
 
-  const validateForm = () => {
+  const validateForm = (password: string, confirmPassword: string) => {
     const newErrors: {
       password?: string;
       confirmPassword?: string;
@@ -70,13 +68,11 @@ const ResetPassword = () => {
       newErrors.confirmPassword = "Passwords do not match";
     }
     
-    setErrors(newErrors);
+    setErrors(prevErrors => ({ ...prevErrors, ...newErrors }));
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (password: string, confirmPassword: string) => {
     if (!accessToken) {
       setErrors({
         general: "Missing reset token. Please request a new password reset link."
@@ -84,7 +80,7 @@ const ResetPassword = () => {
       return;
     }
     
-    if (!validateForm()) return;
+    if (!validateForm(password, confirmPassword)) return;
     
     setIsLoading(true);
     
@@ -132,64 +128,17 @@ const ResetPassword = () => {
             <p className="text-gray-500 mt-2">Enter your new password below</p>
           </div>
           
-          {errors.general && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-500 text-sm rounded">
-              {errors.general}
-            </div>
-          )}
+          <ErrorMessage message={errors.general || ""} />
           
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                New Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter new password"
-                className={errors.password ? "border-red-500" : ""}
-                disabled={!accessToken}
-              />
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-500">{errors.password}</p>
-              )}
-            </div>
-            
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm Password
-              </label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                className={errors.confirmPassword ? "border-red-500" : ""}
-                disabled={!accessToken}
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
-              )}
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-medical-teal hover:bg-medical-teal/90 text-white"
-              disabled={isLoading || !accessToken}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating Password...
-                </>
-              ) : (
-                "Reset Password"
-              )}
-            </Button>
-          </form>
+          <PasswordResetForm 
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            isFormDisabled={!accessToken}
+            errors={{
+              password: errors.password,
+              confirmPassword: errors.confirmPassword
+            }}
+          />
         </Card>
       </div>
       

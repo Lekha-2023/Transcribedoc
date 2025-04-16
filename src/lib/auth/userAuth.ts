@@ -1,62 +1,7 @@
-// This is a mock authentication service that simulates login/registration
-// In a real application, this would connect to a backend service
 
 import { supabase } from "@/integrations/supabase/client";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface AuthState {
-  isAuthenticated: boolean;
-  user: User | null;
-  token: string | null;
-}
-
-// Mock user storage - in a real app, this would be handled by a backend
-const USERS_STORAGE_KEY = 'mediscribe_users';
-const AUTH_STORAGE_KEY = 'mediscribe_auth';
-
-// Initialize the auth state from localStorage
-export const getInitialAuthState = (): AuthState => {
-  const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
-  if (storedAuth) {
-    return JSON.parse(storedAuth);
-  }
-  return {
-    isAuthenticated: false,
-    user: null,
-    token: null
-  };
-};
-
-// Get all registered users
-const getUsers = (): Record<string, { name: string; email: string; password: string }> => {
-  const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-  return storedUsers ? JSON.parse(storedUsers) : {};
-};
-
-// Save users to localStorage
-const saveUsers = (users: Record<string, { name: string; email: string; password: string }>) => {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-};
-
-// Save auth state to localStorage
-const saveAuthState = (authState: AuthState) => {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
-};
-
-// Clear all stored auth data
-export const clearAllAuthData = () => {
-  // Clear local storage keys
-  localStorage.removeItem(USERS_STORAGE_KEY);
-  localStorage.removeItem(AUTH_STORAGE_KEY);
-  
-  // Sign out from Supabase
-  supabase.auth.signOut();
-};
+import { User, AuthState } from './types';
+import { getUsers, saveUsers, saveAuthState } from './storage';
 
 // Register a new user
 export const registerUser = async (name: string, email: string, password: string): Promise<{ success: boolean; message: string }> => {
@@ -167,66 +112,6 @@ export const loginUser = async (email: string, password: string): Promise<{ succ
   }
 };
 
-// Send password reset email
-export const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
-  try {
-    // Check if the email exists
-    const users = getUsers();
-    if (!users[email]) {
-      return { success: false, message: 'Email not found' };
-    }
-    
-    // Get the current origin (domain)
-    const origin = window.location.origin;
-    
-    // Send password reset email via Supabase
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/reset-password`,
-    });
-    
-    if (error) {
-      console.error("Password reset error:", error);
-      throw error;
-    }
-    
-    return { 
-      success: true, 
-      message: 'Password reset instructions sent to your email' 
-    };
-  } catch (error) {
-    console.error("Password reset error:", error);
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Failed to send reset instructions' 
-    };
-  }
-};
-
-// Update password (for reset password flow)
-export const updatePassword = async (password: string): Promise<{ success: boolean; message: string }> => {
-  try {
-    const { error } = await supabase.auth.updateUser({
-      password: password
-    });
-
-    if (error) {
-      console.error("Update password error:", error);
-      throw error;
-    }
-
-    return { 
-      success: true, 
-      message: 'Password updated successfully' 
-    };
-  } catch (error) {
-    console.error("Update password error:", error);
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Failed to update password' 
-    };
-  }
-};
-
 // Logout user
 export const logoutUser = async (): Promise<void> => {
   try {
@@ -257,3 +142,4 @@ export const getCurrentUser = (): User | null => {
   const authState = getInitialAuthState();
   return authState.user;
 };
+
