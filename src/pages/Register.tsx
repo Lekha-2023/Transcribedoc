@@ -1,12 +1,13 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { registerUser } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import RegisterForm from "@/components/auth/RegisterForm";
+import RegisterCTA from "@/components/auth/RegisterCTA";
 import type { RegisterErrors } from "@/utils/registerValidation";
 
 const Register = () => {
@@ -65,26 +66,13 @@ const Register = () => {
             <p className="text-gray-500 mt-2">Sign up to start converting your audio to text</p>
           </div>
           
-          {errors.general && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-500 text-sm rounded">
-              {errors.general}
-            </div>
-          )}
-          
           <RegisterForm 
             onSubmit={handleSubmit}
             isLoading={isLoading}
             errors={errors}
           />
           
-          <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600">
-              Already have an account?{" "}
-              <Link to="/login" className="text-medical-blue hover:underline font-medium">
-                Log In
-              </Link>
-            </p>
-          </div>
+          <RegisterCTA />
         </Card>
       </div>
       
