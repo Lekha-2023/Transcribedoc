@@ -8,9 +8,5 @@ export interface FileRecord {
   fileType: string;
   fileSize: number;
   transcriptText?: string;
-  downloadLinks?: {
-    txt?: string;
-    doc?: string;
-    pdf?: string;
-  };
 }
+

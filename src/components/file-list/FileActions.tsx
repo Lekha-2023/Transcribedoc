@@ -1,5 +1,5 @@
 
-import { Mail, Download, Trash, Loader2, FileIcon } from "lucide-react";
+import { Mail, Trash, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -10,11 +10,6 @@ import {
 
 interface FileActionsProps {
   fileId: string;
-  downloadLinks?: {
-    txt?: string;
-    doc?: string;
-    pdf?: string;
-  };
   sendingEmail: string | null;
   onSendResults: (fileId: string) => void;
   onDelete: (fileId: string) => void;
@@ -22,7 +17,6 @@ interface FileActionsProps {
 
 export const FileActions = ({
   fileId,
-  downloadLinks,
   sendingEmail,
   onSendResults,
   onDelete,
@@ -53,64 +47,6 @@ export const FileActions = ({
         </Tooltip>
       </TooltipProvider>
       
-      {downloadLinks && (
-        <>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center space-x-1"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>TXT</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Download as text file</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center space-x-1"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>DOC</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Download as Word document</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center space-x-1"
-                >
-                  <FileIcon className="h-4 w-4" />
-                  <span>PDF</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Download as PDF document</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </>
-      )}
-      
       <Button 
         variant="outline" 
         size="sm"
@@ -123,3 +59,4 @@ export const FileActions = ({
     </div>
   );
 };
+

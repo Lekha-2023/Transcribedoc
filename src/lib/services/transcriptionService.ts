@@ -41,12 +41,29 @@ export const sendResultsViaEmail = async (
   if (file.status !== 'completed') {
     return { success: false, message: 'File processing has not been completed' };
   }
-  
-  // Simulate email sending
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  return { 
-    success: true, 
-    message: `Results for "${file.originalFileName}" successfully sent to ${email}` 
-  };
+
+  try {
+    const { error } = await supabase.functions.invoke('send-contact-confirmation', {
+      body: { 
+        name: email.split('@')[0],
+        email: email,
+        subject: `Your Transcription: ${file.originalFileName}`,
+        transcription: file.transcriptText
+      }
+    });
+
+    if (error) throw error;
+
+    return { 
+      success: true, 
+      message: `Results for "${file.originalFileName}" successfully sent to ${email}` 
+    };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return { 
+      success: false, 
+      message: 'Failed to send email. Please try again later.' 
+    };
+  }
 };
+

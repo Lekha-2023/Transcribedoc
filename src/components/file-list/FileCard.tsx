@@ -66,7 +66,6 @@ export const FileCard = ({
               
               <FileActions
                 fileId={file.id}
-                downloadLinks={file.downloadLinks}
                 sendingEmail={sendingEmail}
                 onSendResults={onSendResults}
                 onDelete={onDelete}
@@ -78,3 +77,4 @@ export const FileCard = ({
     </Card>
   );
 };
+
