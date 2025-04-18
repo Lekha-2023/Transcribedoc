@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { getCurrentUser } from "@/lib/auth";
-import { FileRecord, deleteFile, sendResultsViaEmail } from "@/lib/fileUtils";
+import { FileRecord, deleteFile } from "@/lib/fileUtils";
+import { sendResultsViaEmail } from "@/lib/services/transcriptionService";
 import { NoFiles } from "./file-list/NoFiles";
 import { FileCard } from "./file-list/FileCard";
 import { DeleteDialog } from "./file-list/DeleteDialog";
@@ -68,12 +69,14 @@ const FileList = ({ files, onFilesChanged }: FileListProps) => {
           title: "Results sent",
           description: result.message
         });
+        console.log("Email sent successfully according to response");
       } else {
         toast({
           title: "Failed to send results",
           description: result.message,
           variant: "destructive"
         });
+        console.error("Failed to send email:", result.message);
       }
     } catch (error) {
       console.error("Error sending results:", error);

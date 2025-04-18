@@ -29,6 +29,12 @@ serve(async (req) => {
 
     console.log(`Processing email for ${name} (${email})`);
     
+    if (transcription) {
+      console.log(`Transcription length: ${transcription.length} characters`);
+    } else {
+      console.log("No transcription provided in request");
+    }
+    
     // Create appropriate email content based on whether it's a transcription email
     const emailContent = transcription 
       ? {
@@ -66,6 +72,17 @@ serve(async (req) => {
         };
 
     console.log("Would send email with content:", emailContent);
+
+    // In a production environment, this would connect to a real email service
+    // For example, with the Resend API:
+    /*
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+    const { data, error } = await resend.emails.send(emailContent);
+    
+    if (error) {
+      throw new Error(`Failed to send email: ${error.message}`);
+    }
+    */
 
     // Return success response
     return new Response(

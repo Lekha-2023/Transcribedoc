@@ -28,24 +28,30 @@ export const transcribeAudio = async (audioUrl: string) => {
 export const sendResultsViaEmail = async (
   fileId: string, 
   userId: string, 
-  email: string,
-  getUserFiles: (userId: string) => any[]
+  email: string
 ): Promise<{ success: boolean; message: string }> => {
-  const userFiles = getUserFiles(userId);
-  const file = userFiles.find(f => f.id === fileId);
-  
-  if (!file) {
-    return { success: false, message: 'File not found' };
-  }
-  
-  if (file.status !== 'completed') {
-    return { success: false, message: 'File processing has not been completed' };
-  }
-
   try {
+    // Get the file data from our local storage
+    const { getUserFiles } = await import('@/lib/storage/localStorageManager');
+    const userFiles = getUserFiles(userId);
+    const file = userFiles.find(f => f.id === fileId);
+    
+    if (!file) {
+      return { success: false, message: 'File not found' };
+    }
+    
+    if (file.status !== 'completed') {
+      return { success: false, message: 'File processing has not been completed' };
+    }
+
     console.log('Sending transcription email for file:', fileId);
     console.log('Email:', email);
-    console.log('Transcription text length:', file.transcriptText?.length || 0);
+    console.log('Transcription text:', file.transcriptText);
+    
+    // Make sure we have transcription text
+    if (!file.transcriptText) {
+      return { success: false, message: 'No transcription text available for this file' };
+    }
     
     const { data, error } = await supabase.functions.invoke('send-contact-confirmation', {
       body: { 

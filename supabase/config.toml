@@ -3,3 +3,4 @@ project_id = "ostaldphsoiputdakucu"
 
 [functions.send-contact-confirmation]
 verify_jwt = false
+
