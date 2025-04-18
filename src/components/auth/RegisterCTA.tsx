@@ -24,13 +24,6 @@ const RegisterCTA = () => {
           </Link>
         </p>
       </div>
-      
-      <div className="mt-4 text-center text-xs text-gray-500">
-        <p>
-          Note: For Google Sign-in to work, it must be enabled in your Supabase project settings.
-          Please check the Authentication &gt; Providers section in your Supabase dashboard.
-        </p>
-      </div>
     </div>
   );
 };
