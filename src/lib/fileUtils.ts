@@ -64,12 +64,7 @@ export const uploadFile = async (
     const updatedFileRecord: FileRecord = {
       ...newFileRecord,
       status: 'completed',
-      transcriptText: transcriptionData.text,
-      downloadLinks: {
-        txt: `#/download/txt/${fileId}`,
-        doc: `#/download/doc/${fileId}`,
-        pdf: `#/download/pdf/${fileId}`
-      }
+      transcriptText: transcriptionData.text
     };
 
     const updatedFiles = userFiles.map(f => 
