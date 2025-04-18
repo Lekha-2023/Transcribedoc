@@ -40,23 +40,24 @@ export const ContactForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Since the contact_messages table doesn't exist yet, we'll only call the edge function
-      await supabase.functions.invoke("send-contact-confirmation", {
+      const response = await supabase.functions.invoke("send-contact-confirmation", {
         body: {
           name: data.name,
           email: data.email,
           subject: data.subject,
+          message: data.message,
         },
       });
 
-      // Success notification
-      toast({
-        title: "Message sent successfully!",
-        description: "Thank you for contacting us. We'll get back to you soon.",
-      });
-
-      // Reset form
-      form.reset();
+      if (!response.error) {
+        toast({
+          title: "Message sent successfully!",
+          description: "Thank you for contacting us. We'll get back to you soon.",
+        });
+        form.reset();
+      } else {
+        throw new Error(response.error.message);
+      }
     } catch (error) {
       console.error("Error submitting contact form:", error);
       toast({

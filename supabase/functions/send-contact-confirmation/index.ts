@@ -7,14 +7,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Initialize Resend with API key
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const ADMIN_EMAIL = "admin@yourdomain.com"; // Replace with your admin email
 
 interface ContactRequest {
   name: string;
   email: string;
   subject: string;
-  transcription?: string;
+  message: string;
 }
 
 serve(async (req) => {
@@ -24,71 +25,69 @@ serve(async (req) => {
   }
 
   try {
-    const { name, email, subject, transcription }: ContactRequest = await req.json();
+    const { name, email, subject, message }: ContactRequest = await req.json();
 
     // Validate required fields
-    if (!name || !email) {
-      throw new Error("Name and email are required");
+    if (!name || !email || !subject || !message) {
+      throw new Error("All fields are required");
     }
 
-    console.log(`Processing email for ${name} (${email})`);
+    console.log(`Processing contact form submission from ${name} (${email})`);
     
-    if (transcription) {
-      console.log(`Transcription length: ${transcription.length} characters`);
-    } else {
-      console.log("No transcription provided in request");
-    }
-    
-    // Create email content
-    const emailContent = {
+    // Send confirmation email to user
+    const userEmailContent = {
       from: "MediScribe <contact@yourdomain.com>", // Use your verified domain
       to: email,
-      subject: subject,
-      html: transcription 
-        ? `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #14b8a6;">Your MediScribe Transcription</h1>
-            <p>Hello ${name},</p>
-            <p>Here is your requested transcription:</p>
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; white-space: pre-wrap;">
-              ${transcription}
-            </div>
-            <hr style="border: 1px solid #eee; margin: 20px 0;" />
-            <p style="color: #666; font-size: 14px;">The MediScribe Team</p>
-          </div>
-        `
-        : `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #14b8a6;">Thank you for contacting MediScribe!</h1>
-            <p>Hello ${name},</p>
-            <p>We've received your message and will get back to you soon.</p>
-            <hr style="border: 1px solid #eee; margin: 20px 0;" />
-            <p style="color: #666; font-size: 14px;">The MediScribe Team</p>
-          </div>
-        `,
+      subject: "We've received your message",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #14b8a6;">Thank you for contacting MediScribe!</h1>
+          <p>Hello ${name},</p>
+          <p>We've received your message regarding "${subject}" and our team will review it shortly.</p>
+          <p>We typically respond within 1-2 business days.</p>
+          <hr style="border: 1px solid #eee; margin: 20px 0;" />
+          <p style="color: #666; font-size: 14px;">The MediScribe Team</p>
+        </div>
+      `,
     };
 
-    console.log("Sending email with Resend:", {
-      to: emailContent.to,
-      subject: emailContent.subject
-    });
+    // Send notification email to admin
+    const adminEmailContent = {
+      from: "MediScribe Contact Form <contact@yourdomain.com>", // Use your verified domain
+      to: ADMIN_EMAIL,
+      subject: `New Contact Form Submission: ${subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #14b8a6;">New Contact Form Submission</h1>
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>From:</strong> ${name} (${email})</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Message:</strong></p>
+            <div style="white-space: pre-wrap;">${message}</div>
+          </div>
+          <hr style="border: 1px solid #eee; margin: 20px 0;" />
+          <p style="color: #666; font-size: 14px;">MediScribe Contact System</p>
+        </div>
+      `,
+    };
 
-    // Send email using Resend
-    const { data, error } = await resend.emails.send(emailContent);
-    
-    if (error) {
-      console.error("Resend API error:", error);
-      throw new Error(`Failed to send email: ${error.message || JSON.stringify(error)}`);
+    // Send both emails
+    const [userEmailResult, adminEmailResult] = await Promise.all([
+      resend.emails.send(userEmailContent),
+      resend.emails.send(adminEmailContent)
+    ]);
+
+    console.log("User confirmation email result:", userEmailResult);
+    console.log("Admin notification email result:", adminEmailResult);
+
+    if (userEmailResult.error || adminEmailResult.error) {
+      throw new Error("Failed to send one or more emails");
     }
-    
-    console.log("Email sent successfully with Resend:", data);
 
-    // Return success response
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Email sent successfully",
-        data
+        message: "Contact form submitted successfully" 
       }),
       { 
         status: 200,
@@ -99,12 +98,12 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error processing contact form:", error);
     
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || "Failed to send email" 
+        error: error.message || "Failed to process contact form" 
       }),
       { 
         status: 400,
