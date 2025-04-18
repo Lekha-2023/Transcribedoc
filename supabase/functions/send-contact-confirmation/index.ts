@@ -1,10 +1,14 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Resend } from "npm:resend@1.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Initialize Resend with API key
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 interface ContactRequest {
   name: string;
@@ -38,8 +42,8 @@ serve(async (req) => {
     // Create appropriate email content based on whether it's a transcription email
     const emailContent = transcription 
       ? {
+          from: "MediScribe <onboarding@resend.dev>",
           to: email,
-          from: "support@mediscribe.com",
           subject: subject,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -55,8 +59,8 @@ serve(async (req) => {
           `,
         }
       : {
+          from: "MediScribe <onboarding@resend.dev>",
           to: email,
-          from: "support@mediscribe.com",
           subject: `MediScribe: We've received your message about "${subject}"`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -71,24 +75,27 @@ serve(async (req) => {
           `,
         };
 
-    console.log("Would send email with content:", emailContent);
+    console.log("Sending email with Resend:", {
+      to: emailContent.to,
+      subject: emailContent.subject
+    });
 
-    // In a production environment, this would connect to a real email service
-    // For example, with the Resend API:
-    /*
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+    // Actually send the email using Resend
     const { data, error } = await resend.emails.send(emailContent);
     
     if (error) {
-      throw new Error(`Failed to send email: ${error.message}`);
+      console.error("Resend API error:", error);
+      throw new Error(`Failed to send email: ${error.message || JSON.stringify(error)}`);
     }
-    */
+    
+    console.log("Email sent successfully with Resend:", data);
 
     // Return success response
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Email sent successfully" 
+        message: "Email sent successfully",
+        data
       }),
       { 
         status: 200,

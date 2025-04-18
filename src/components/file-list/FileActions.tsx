@@ -21,6 +21,8 @@ export const FileActions = ({
   onSendResults,
   onDelete,
 }: FileActionsProps) => {
+  const isSending = sendingEmail === fileId;
+  
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       <TooltipProvider>
@@ -31,14 +33,19 @@ export const FileActions = ({
               size="sm"
               className="flex items-center space-x-1"
               onClick={() => onSendResults(fileId)}
-              disabled={!!sendingEmail}
+              disabled={isSending}
             >
-              {sendingEmail === fileId ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+              {isSending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  <span>Sending...</span>
+                </>
               ) : (
-                <Mail className="h-4 w-4" />
+                <>
+                  <Mail className="h-4 w-4 mr-1" />
+                  <span>Email Results</span>
+                </>
               )}
-              <span>Email Results</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -52,11 +59,11 @@ export const FileActions = ({
         size="sm"
         className="ml-auto flex items-center space-x-1 text-red-500 hover:text-red-700 hover:bg-red-50"
         onClick={() => onDelete(fileId)}
+        disabled={isSending}
       >
-        <Trash className="h-4 w-4" />
+        <Trash className="h-4 w-4 mr-1" />
         <span>Delete</span>
       </Button>
     </div>
   );
 };
-
