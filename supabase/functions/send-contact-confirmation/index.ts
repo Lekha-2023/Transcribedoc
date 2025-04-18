@@ -39,48 +39,41 @@ serve(async (req) => {
       console.log("No transcription provided in request");
     }
     
-    // Create appropriate email content based on whether it's a transcription email
-    const emailContent = transcription 
-      ? {
-          from: "MediScribe <onboarding@resend.dev>",
-          to: email,
-          subject: subject,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #14b8a6;">Your MediScribe Transcription</h1>
-              <p>Hello ${name},</p>
-              <p>Here is your requested transcription:</p>
-              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; white-space: pre-wrap;">
-                ${transcription}
-              </div>
-              <hr style="border: 1px solid #eee; margin: 20px 0;" />
-              <p style="color: #666; font-size: 14px;">The MediScribe Team</p>
+    // Create email content
+    const emailContent = {
+      from: "MediScribe <contact@yourdomain.com>", // Use your verified domain
+      to: email,
+      subject: subject,
+      html: transcription 
+        ? `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #14b8a6;">Your MediScribe Transcription</h1>
+            <p>Hello ${name},</p>
+            <p>Here is your requested transcription:</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; white-space: pre-wrap;">
+              ${transcription}
             </div>
-          `,
-        }
-      : {
-          from: "MediScribe <onboarding@resend.dev>",
-          to: email,
-          subject: `MediScribe: We've received your message about "${subject}"`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #14b8a6;">Thank you for contacting MediScribe!</h1>
-              <p>Hello ${name},</p>
-              <p>We've received your message regarding "${subject}" and wanted to let you know that our team is reviewing it.</p>
-              <p>We typically respond within 1-2 business days.</p>
-              <p>If your inquiry is urgent, please call our support line at +1 (555) 123-4567.</p>
-              <hr style="border: 1px solid #eee; margin: 20px 0;" />
-              <p style="color: #666; font-size: 14px;">The MediScribe Team</p>
-            </div>
-          `,
-        };
+            <hr style="border: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #666; font-size: 14px;">The MediScribe Team</p>
+          </div>
+        `
+        : `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #14b8a6;">Thank you for contacting MediScribe!</h1>
+            <p>Hello ${name},</p>
+            <p>We've received your message and will get back to you soon.</p>
+            <hr style="border: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #666; font-size: 14px;">The MediScribe Team</p>
+          </div>
+        `,
+    };
 
     console.log("Sending email with Resend:", {
       to: emailContent.to,
       subject: emailContent.subject
     });
 
-    // Actually send the email using Resend
+    // Send email using Resend
     const { data, error } = await resend.emails.send(emailContent);
     
     if (error) {
