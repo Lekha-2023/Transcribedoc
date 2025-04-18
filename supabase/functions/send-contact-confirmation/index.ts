@@ -9,7 +9,10 @@ const corsHeaders = {
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const ADMIN_EMAIL = "admin@yourdomain.com"; // Replace with your admin email
+// Change this to your verified domain email address for sending emails
+const FROM_EMAIL = "contact@yourdomain.com"; 
+// Change this to the email address where you want to receive admin notifications
+const ADMIN_EMAIL = "admin@yourdomain.com"; 
 
 interface ContactRequest {
   name: string;
@@ -36,7 +39,7 @@ serve(async (req) => {
     
     // Send confirmation email to user
     const userEmailContent = {
-      from: "MediScribe <contact@yourdomain.com>", // Use your verified domain
+      from: `MediScribe <${FROM_EMAIL}>`,
       to: email,
       subject: "We've received your message",
       html: `
@@ -53,7 +56,7 @@ serve(async (req) => {
 
     // Send notification email to admin
     const adminEmailContent = {
-      from: "MediScribe Contact Form <contact@yourdomain.com>", // Use your verified domain
+      from: `MediScribe Contact Form <${FROM_EMAIL}>`,
       to: ADMIN_EMAIL,
       subject: `New Contact Form Submission: ${subject}`,
       html: `
