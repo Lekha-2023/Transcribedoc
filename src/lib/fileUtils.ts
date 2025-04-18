@@ -1,4 +1,3 @@
-
 import { FileRecord } from "./types/file";
 import { getUserFiles, saveUserFiles } from "./storage/localStorageManager";
 import { uploadToStorage, deleteFromStorage } from "./storage/fileStorage";
@@ -129,4 +128,4 @@ export const deleteFile = async (fileId: string, userId: string): Promise<boolea
 };
 
 export const sendResultsViaEmail = (fileId: string, userId: string, email: string) => 
-  sendResults(fileId, userId, email, getUserFiles);
+  sendResults(fileId, userId, email);
