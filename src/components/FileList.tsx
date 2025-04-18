@@ -21,9 +21,16 @@ const FileList = ({ files, onFilesChanged }: FileListProps) => {
   const handleDelete = async (fileId: string) => {
     setDeletingFile(null);
     
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to delete files",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const success = deleteFile(fileId, user.id);
+    const success = await deleteFile(fileId, user.id);
     
     if (success) {
       toast({
@@ -41,11 +48,19 @@ const FileList = ({ files, onFilesChanged }: FileListProps) => {
   };
 
   const handleSendResults = async (fileId: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to send results",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setSendingEmail(fileId);
     
     try {
+      console.log(`Sending results for file ${fileId} to ${user.email}`);
       const result = await sendResultsViaEmail(fileId, user.id, user.email);
       
       if (result.success) {
@@ -61,9 +76,10 @@ const FileList = ({ files, onFilesChanged }: FileListProps) => {
         });
       }
     } catch (error) {
+      console.error("Error sending results:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {

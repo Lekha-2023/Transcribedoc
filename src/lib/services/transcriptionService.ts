@@ -43,7 +43,11 @@ export const sendResultsViaEmail = async (
   }
 
   try {
-    const { error } = await supabase.functions.invoke('send-contact-confirmation', {
+    console.log('Sending transcription email for file:', fileId);
+    console.log('Email:', email);
+    console.log('Transcription text length:', file.transcriptText?.length || 0);
+    
+    const { data, error } = await supabase.functions.invoke('send-contact-confirmation', {
       body: { 
         name: email.split('@')[0],
         email: email,
@@ -52,7 +56,12 @@ export const sendResultsViaEmail = async (
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error invoking function:', error);
+      throw error;
+    }
+
+    console.log('Email send response:', data);
 
     return { 
       success: true, 
@@ -66,4 +75,3 @@ export const sendResultsViaEmail = async (
     };
   }
 };
-
