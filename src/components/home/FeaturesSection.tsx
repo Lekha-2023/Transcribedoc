@@ -1,6 +1,6 @@
 
 import { Card } from "@/components/ui/card";
-import { Upload, Mic, FileText } from "lucide-react";
+import { Upload, Mic, FileText, DollarSign } from "lucide-react";
 
 const FeaturesSection = () => {
   return (
@@ -43,6 +43,16 @@ const FeaturesSection = () => {
               Access your transcriptions instantly in multiple formats (TXT, DOC, PDF) or email them directly.
             </p>
           </Card>
+
+          <Card className="p-6 bg-white shadow-md hover:shadow-xl transition-shadow card-hover">
+            <div className="h-12 w-12 bg-medical-teal/10 flex items-center justify-center rounded-lg mb-5">
+              <DollarSign className="h-6 w-6 text-medical-teal" />
+            </div>
+            <h3 className="text-xl font-semibold text-medical-dark mb-3">Affordable Pricing</h3>
+            <p className="text-gray-600">
+              Cost-effective solutions with flexible pricing plans tailored for healthcare professionals and organizations.
+            </p>
+          </Card>
         </div>
       </div>
     </section>
@@ -50,3 +60,4 @@ const FeaturesSection = () => {
 };
 
 export default FeaturesSection;
+
