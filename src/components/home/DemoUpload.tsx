@@ -1,0 +1,113 @@
+
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileAudio, Upload } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+
+const DemoUpload = () => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { toast } = useToast();
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('audio/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an audio file (MP3, WAV, OGG, WEBM)",
+          variant: "destructive"
+        });
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const handleDemoClick = () => {
+    toast({
+      title: "Demo Feature",
+      description: "Sign up to unlock full transcription capabilities!",
+      action: (
+        <Button 
+          onClick={() => window.location.href = '/register'}
+          variant="outline" 
+          className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+        >
+          Sign Up
+        </Button>
+      ),
+    });
+  };
+
+  return (
+    <section className="py-20 px-4 bg-gray-50">
+      <div className="container mx-auto max-w-4xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-medical-dark mb-4">
+            Try It Now
+          </h2>
+          <p className="text-lg text-gray-600">
+            Experience the power of AI transcription with a demo upload
+          </p>
+        </div>
+
+        <Card className="p-8 bg-white shadow-md">
+          <div className="flex flex-col items-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-medical-teal/10 flex items-center justify-center">
+              <Upload className="h-8 w-8 text-medical-teal" />
+            </div>
+
+            {!selectedFile ? (
+              <div className="space-y-4 w-full max-w-md text-center">
+                <label className="block">
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="audio/*"
+                    className="hidden"
+                  />
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="w-full border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+                  >
+                    Select Audio File
+                  </Button>
+                </label>
+                <p className="text-sm text-gray-500">
+                  Supported formats: MP3, WAV, OGG, WEBM
+                </p>
+              </div>
+            ) : (
+              <div className="w-full max-w-md">
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md">
+                  <FileAudio className="h-10 w-10 text-medical-blue" />
+                  <div className="flex-1 truncate">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    onClick={handleDemoClick}
+                    className="bg-medical-teal hover:bg-medical-teal/90 text-white"
+                  >
+                    Try Transcription
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+    </section>
+  );
+};
+
+export default DemoUpload;

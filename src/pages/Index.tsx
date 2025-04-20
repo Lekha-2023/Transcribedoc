@@ -7,6 +7,7 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import BenefitsSection from "@/components/home/BenefitsSection";
 import CTASection from "@/components/home/CTASection";
+import DemoUpload from "@/components/home/DemoUpload";
 
 const Index = () => {
   const isLoggedIn = isAuthenticated();
@@ -16,6 +17,7 @@ const Index = () => {
       <Navbar isLoggedIn={isLoggedIn} />
       <HeroSection isLoggedIn={isLoggedIn} />
       <FeaturesSection />
+      <DemoUpload />
       <BenefitsSection />
       <CTASection isLoggedIn={isLoggedIn} />
       <Footer />
