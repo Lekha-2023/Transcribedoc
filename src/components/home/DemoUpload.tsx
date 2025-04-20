@@ -2,11 +2,15 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileAudio, Upload } from "lucide-react";
+import { FileAudio, Upload, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 const DemoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [transcript, setTranscript] = useState<string>("");
   const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,23 +25,60 @@ const DemoUpload = () => {
         return;
       }
       setSelectedFile(file);
+      setTranscript("");
     }
   };
 
-  const handleDemoClick = () => {
-    toast({
-      title: "Demo Feature",
-      description: "Sign up to unlock full transcription capabilities!",
-      action: (
-        <Button 
-          onClick={() => window.location.href = '/register'}
-          variant="outline" 
-          className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
-        >
-          Sign Up
-        </Button>
-      ),
-    });
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setTranscript("");
+  };
+
+  const handleDemoClick = async () => {
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simulate upload progress
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        const newProgress = prev + Math.random() * 15;
+        return newProgress < 90 ? newProgress : prev;
+      });
+    }, 500);
+
+    try {
+      // Simulate transcription with a demo text
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      setUploadProgress(100);
+
+      const demoTranscript = "This is a demo transcription. Sign up to unlock full transcription capabilities with our advanced AI technology!";
+      setTranscript(demoTranscript);
+
+      toast({
+        title: "Demo Complete",
+        description: "Sign up to unlock full transcription capabilities!",
+        action: (
+          <Button 
+            onClick={() => window.location.href = '/register'}
+            variant="outline" 
+            className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+          >
+            Sign Up
+          </Button>
+        ),
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process the file. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      clearInterval(progressInterval);
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -81,25 +122,50 @@ const DemoUpload = () => {
               </div>
             ) : (
               <div className="w-full max-w-md">
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md">
-                  <FileAudio className="h-10 w-10 text-medical-blue" />
-                  <div className="flex-1 truncate">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {selectedFile.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div className="flex items-center space-x-3">
+                    <FileAudio className="h-10 w-10 text-medical-blue" />
+                    <div className="flex-1 truncate">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
                   </div>
+                  <button
+                    onClick={handleRemoveFile}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
                 
-                <div className="mt-6 flex justify-center">
-                  <Button
-                    onClick={handleDemoClick}
-                    className="bg-medical-teal hover:bg-medical-teal/90 text-white"
-                  >
-                    Try Transcription
-                  </Button>
+                <div className="mt-6 space-y-4">
+                  {isUploading ? (
+                    <div className="space-y-2">
+                      <Progress value={uploadProgress} className="w-full" />
+                      <p className="text-sm text-center text-gray-500">
+                        {uploadProgress < 100 ? 'Processing...' : 'Almost done...'}
+                      </p>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleDemoClick}
+                      className="w-full bg-medical-teal hover:bg-medical-teal/90 text-white"
+                      disabled={isUploading}
+                    >
+                      Try Transcription
+                    </Button>
+                  )}
+
+                  {transcript && (
+                    <div className="mt-6 p-4 bg-gray-50 rounded-md">
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">Transcription Result:</h3>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{transcript}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
