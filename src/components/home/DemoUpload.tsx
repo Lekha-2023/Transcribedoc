@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { FileAudio, Upload, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { uploadToStorage } from "@/lib/storage/fileStorage";
+import { transcribeAudio } from "@/lib/services/transcriptionService";
 
 const DemoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -40,7 +43,7 @@ const DemoUpload = () => {
     setIsUploading(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
+    // Simulate initial upload progress
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
         const newProgress = prev + Math.random() * 15;
@@ -49,27 +52,36 @@ const DemoUpload = () => {
     }, 500);
 
     try {
-      // Simulate transcription with a demo text
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Generate a temporary demo file ID
+      const demoFileId = `demo_${Date.now()}`;
+      
+      // Upload the file to storage
+      const publicUrl = await uploadToStorage(selectedFile, 'demo', demoFileId);
+      
+      // Start transcription
+      const transcriptionResult = await transcribeAudio(publicUrl);
       setUploadProgress(100);
 
-      const demoTranscript = "This is a demo transcription. Sign up to unlock full transcription capabilities with our advanced AI technology!";
-      setTranscript(demoTranscript);
-
-      toast({
-        title: "Demo Complete",
-        description: "Sign up to unlock full transcription capabilities!",
-        action: (
-          <Button 
-            onClick={() => window.location.href = '/register'}
-            variant="outline" 
-            className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
-          >
-            Sign Up
-          </Button>
-        ),
-      });
+      if (transcriptionResult.text) {
+        setTranscript(transcriptionResult.text);
+        
+        // Show success toast with CTA
+        toast({
+          title: "Demo Complete",
+          description: "Sign up to unlock full transcription capabilities!",
+          action: (
+            <Button 
+              onClick={() => window.location.href = '/register'}
+              variant="outline" 
+              className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+            >
+              Sign Up
+            </Button>
+          ),
+        });
+      }
     } catch (error) {
+      console.error('Demo transcription error:', error);
       toast({
         title: "Error",
         description: "Failed to process the file. Please try again.",
