@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Upload } from "lucide-react";
 import DemoUploadFilePicker from "./DemoUploadFilePicker";
@@ -10,9 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-// Light-themed light background image for "Try It Now" section
+// Changed background image to new user-provided healthcare illustration
 const demoMainBg =
-  "https://images.unsplash.com/photo-1550831107-2844a309c946?auto=format&fit=crop&w=400&q=80"; // Light-themed healthcare professionals image
+  "/lovable-uploads/138ce85f-e38f-4e09-b9b9-06f97412ab40.png";
 
 const DemoUpload = () => {
   const {
