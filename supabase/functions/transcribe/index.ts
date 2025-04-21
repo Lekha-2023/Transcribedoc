@@ -52,7 +52,24 @@ serve(async (req) => {
       }
       
       // Ensure the file type is valid
-      const fileExt = fileName?.split('.').pop() || 'wav';
+      const validAudioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
+      if (!fileType || !validAudioTypes.includes(fileType)) {
+        throw new Error(`Invalid file type: ${fileType || 'unknown'}`);
+      }
+      
+      // Get file extension from type or filename
+      const getExtFromType = (type: string) => {
+        const map: Record<string, string> = {
+          'audio/mp3': 'mp3',
+          'audio/mpeg': 'mp3',
+          'audio/wav': 'wav',
+          'audio/ogg': 'ogg',
+          'audio/webm': 'webm'
+        };
+        return map[type] || 'wav';
+      };
+      
+      const fileExt = fileName?.split('.').pop() || getExtFromType(fileType);
       console.log(`Using file extension: ${fileExt}`);
       
       try {

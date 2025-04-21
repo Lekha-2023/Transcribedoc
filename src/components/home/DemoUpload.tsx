@@ -27,10 +27,11 @@ const DemoUpload = () => {
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type before setting
-      if (!file.type.startsWith("audio/")) {
+      const validAudioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
+      if (!validAudioTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
-          description: "Please select an audio file (MP3, WAV, OGG, WEBM)",
+          description: "Please select a valid audio file (MP3, WAV, OGG, WEBM)",
           variant: "destructive",
         });
         return;

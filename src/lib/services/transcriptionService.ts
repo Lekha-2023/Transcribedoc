@@ -42,8 +42,9 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
     console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
     
     // Validate file type
-    if (!audioFile.type.startsWith('audio/')) {
-      throw new Error('Invalid file type. Please select an audio file.');
+    const validAudioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
+    if (!validAudioTypes.includes(audioFile.type)) {
+      throw new Error('Invalid file type. Please select a valid audio file (MP3, WAV, OGG, WEBM).');
     }
     
     // Check if file is too large (over 15MB)
