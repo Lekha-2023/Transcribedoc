@@ -35,7 +35,7 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
-// Updated to fix file processing issues
+// Fixed audio file handling
 export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
   try {
     console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
@@ -62,27 +62,27 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
     const fileExtension = audioFile.name.split('.').pop()?.toLowerCase() || '';
     console.log('File extension from name:', fileExtension);
     
-    // Convert the file to a blob URL for better compatibility
-    const fileArrayBuffer = await readFileAsArrayBuffer(audioFile);
-    const blob = new Blob([fileArrayBuffer], { type: fileType });
+    // Use FileReader to read file as ArrayBuffer
+    const audioArrayBuffer = await readFileAsArrayBuffer(audioFile);
     
-    // Check blob content
-    console.log('Created blob:', blob.size, 'bytes, type:', blob.type);
+    // Create proper audio Blob with correct MIME type
+    const audioBlob = new Blob([audioArrayBuffer], { type: fileType });
+    console.log('Created blob:', audioBlob.size, 'bytes, type:', audioBlob.type);
     
-    // Convert blob to base64
-    const base64Data = await blobToBase64(blob);
-    console.log('Converted to base64, length:', base64Data.length);
+    // Convert blob to base64 string
+    const audioBase64 = await blobToBase64(audioBlob);
+    console.log('Converted to base64, length:', audioBase64.length);
     
-    if (!base64Data || base64Data.length === 0) {
+    if (!audioBase64 || audioBase64.length === 0) {
       throw new Error('Failed to convert audio file to base64');
     }
     
     console.log('Sending audio data to transcribe function...');
     
-    // Call the edge function with the base64 data and file info
+    // Call the edge function with proper parameters
     const { data, error } = await supabase.functions.invoke('transcribe', {
       body: { 
-        audioBase64: base64Data,
+        audioBase64: audioBase64,
         fileName: audioFile.name,
         isDemo: true,
         fileType: fileType,
@@ -120,7 +120,6 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
 const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsArrayBuffer(file);
     reader.onload = () => {
       if (reader.result instanceof ArrayBuffer) {
         resolve(reader.result);
@@ -129,6 +128,7 @@ const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
       }
     };
     reader.onerror = (error) => reject(error);
+    reader.readAsArrayBuffer(file);
   });
 };
 
@@ -136,7 +136,6 @@ const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsDataURL(blob);
     reader.onload = () => {
       if (typeof reader.result === 'string') {
         // Extract only the base64 data part (remove the data URL prefix)
@@ -147,27 +146,11 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
       }
     };
     reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(blob);
   });
 };
 
 // Legacy method kept for compatibility
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        // Remove the data URL prefix (e.g., "data:audio/wav;base64,")
-        const base64String = reader.result.split(',')[1];
-        resolve(base64String);
-      } else {
-        reject(new Error('Failed to convert file to base64'));
-      }
-    };
-    reader.onerror = (error) => reject(error);
-  });
-};
-
 export const sendResultsViaEmail = async (
   fileId: string, 
   userId: string, 
