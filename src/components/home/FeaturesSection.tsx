@@ -2,9 +2,8 @@
 import { Card } from "@/components/ui/card";
 import { Upload, Mic, FileText } from "lucide-react";
 
-// Section-wide light background image for "How MediScribe Works"
-const sectionBgImage =
-  "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1200&q=80";
+// Light pastel color as background for the entire section (light color requested)
+const sectionBgColor = "#F9FAFB"; // very light gray (compatible with Tailwind's gray-50)
 
 const features = [
   {
@@ -32,15 +31,10 @@ const FeaturesSection = () => {
     <section
       className="py-20 px-4 bg-white relative"
       style={{
-        backgroundImage: `url(${sectionBgImage})`,
-        backgroundPosition: "center",
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundColor: "#F3F3F3", // light background fallback color
+        backgroundColor: sectionBgColor, // light pastel background for entire section
       }}
     >
-      {/* Overlay for section readability */}
-      <div className="absolute inset-0 bg-white/70 pointer-events-none z-0" />
+      {/* Removed overlay and background image for the section */}
       <div className="container mx-auto max-w-6xl relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-medical-dark">
@@ -55,7 +49,7 @@ const FeaturesSection = () => {
           {features.map((f) => (
             <Card
               key={f.title}
-              className="flex flex-col items-center justify-center w-full max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg border border-border text-center"
+              className="flex flex-col items-center justify-center w-full max-w-[320px] h-[320px] bg-white rounded-lg shadow-lg border border-border text-center"
               style={{ boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)" }}
             >
               <span className="mb-6 flex items-center justify-center bg-medical-blue/80 rounded-full p-5 shadow-sm">
