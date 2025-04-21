@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import BenefitsSection from "@/components/home/BenefitsSection";
-import DemoUpload from "@/components/home/DemoUpload";
+// Removed: import DemoUpload from "@/components/home/DemoUpload";
 // Removed: import ImageGallerySection from "@/components/home/ImageGallerySection";
 
 const Index = () => {
@@ -17,7 +17,7 @@ const Index = () => {
       <Navbar isLoggedIn={isLoggedIn} />
       <HeroSection isLoggedIn={isLoggedIn} />
       <FeaturesSection />
-      <DemoUpload />
+      {/* Removed DemoUpload here */}
       <BenefitsSection />
       {/* Removed: <ImageGallerySection /> */}
       <Footer />
