@@ -1,7 +1,8 @@
+
 import { FileRecord } from "./types/file";
 import { getUserFiles, saveUserFiles } from "./storage/localStorageManager";
 import { uploadToStorage, deleteFromStorage } from "./storage/fileStorage";
-import { transcribeAudio, sendResultsViaEmail as sendResults } from "./services/transcriptionService";
+import { transcribeAudio, sendResultsViaEmail as sendResults } from "./services/transcription";
 import { supabase } from "@/integrations/supabase/client";
 
 export type { FileRecord };

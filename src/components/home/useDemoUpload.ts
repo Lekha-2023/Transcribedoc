@@ -1,7 +1,7 @@
 
 import { useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { transcribeDemoAudio } from "@/lib/services/transcriptionService";
+import { transcribeDemoAudio } from "@/lib/services/transcription";
 import { getFileTypeErrorMsg } from "./DemoUploadUtils";
 
 export function useDemoUpload() {

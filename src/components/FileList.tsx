@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { getCurrentUser } from "@/lib/auth";
 import { FileRecord, deleteFile } from "@/lib/fileUtils";
-import { sendResultsViaEmail } from "@/lib/services/transcriptionService";
+import { sendResultsViaEmail } from "@/lib/services/transcription";
 import { NoFiles } from "./file-list/NoFiles";
 import { FileCard } from "./file-list/FileCard";
 import { DeleteDialog } from "./file-list/DeleteDialog";
