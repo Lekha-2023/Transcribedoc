@@ -1,5 +1,5 @@
 
-import { Clock, Lock, BarChart4, FileText } from "lucide-react";
+import { Clock, Lock, BarChart4, FileText, DollarSign } from "lucide-react";
 
 const BenefitsSection = () => {
   return (
@@ -65,6 +65,20 @@ const BenefitsSection = () => {
               <h3 className="text-lg font-semibold text-medical-dark mb-2">Multiple Formats</h3>
               <p className="text-gray-600">
                 Download your transcriptions in TXT, DOC, or PDF formats for easy integration.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex bg-white rounded-lg p-6 shadow-md">
+            <div className="mr-5">
+              <div className="h-10 w-10 bg-medical-blue/10 flex items-center justify-center rounded-lg">
+                <DollarSign className="h-5 w-5 text-medical-blue" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-medical-dark mb-2">Affordable Pricing</h3>
+              <p className="text-gray-600">
+                Cost-effective solutions with flexible pricing plans tailored for healthcare professionals and organizations.
               </p>
             </div>
           </div>
