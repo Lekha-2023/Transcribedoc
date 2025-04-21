@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export const transcribeAudio = async (audioUrl: string) => {
@@ -36,7 +35,7 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
-// Updated demo transcription function with fixed file handling
+// Updated demo transcription function with improved error handling and data sending
 export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
   try {
     console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
@@ -51,33 +50,25 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       throw new Error('File is too large. Maximum size is 15MB.');
     }
     
-    // Read the file directly as an ArrayBuffer instead of base64
-    const arrayBuffer = await readFileAsArrayBuffer(audioFile);
-    console.log('File read as ArrayBuffer, size:', arrayBuffer.byteLength);
+    // Convert the file to base64 - this is the most reliable way to send audio data
+    const base64Data = await fileToBase64(audioFile);
+    console.log('File converted to base64, length:', base64Data.length);
     
-    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
-      throw new Error('Failed to read audio file');
+    if (!base64Data || base64Data.length === 0) {
+      throw new Error('Failed to convert audio file to base64');
     }
     
-    // Create a blob URL from the array buffer
-    const blob = new Blob([arrayBuffer], { type: audioFile.type });
-    const blobUrl = URL.createObjectURL(blob);
-    console.log('Created blob URL for audio file:', blobUrl);
+    console.log('Calling transcribe edge function with audio data...');
     
-    console.log('Calling transcribe edge function with audio URL...');
-    
-    // Call the edge function with the blob URL and file info
+    // Call the edge function with the base64 data and file info
     const { data, error } = await supabase.functions.invoke('transcribe', {
       body: { 
-        audioUrl: blobUrl,
+        audioBase64: base64Data,
         fileName: audioFile.name,
         isDemo: true,
         fileType: audioFile.type
       }
     });
-    
-    // Clean up the blob URL
-    URL.revokeObjectURL(blobUrl);
     
     if (error) {
       console.error('Demo transcription error from edge function:', error);
@@ -105,23 +96,7 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
   }
 };
 
-// Helper function to read file as ArrayBuffer
-const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file);
-    reader.onload = () => {
-      if (reader.result instanceof ArrayBuffer) {
-        resolve(reader.result);
-      } else {
-        reject(new Error('Failed to read file as ArrayBuffer'));
-      }
-    };
-    reader.onerror = (error) => reject(error);
-  });
-};
-
-// Kept for backward compatibility
+// Convert file to base64 - the most reliable format for sending to API
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -133,6 +108,22 @@ const fileToBase64 = (file: File): Promise<string> => {
         resolve(base64String);
       } else {
         reject(new Error('Failed to convert file to base64'));
+      }
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+// Keep for backward compatibility
+const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to read file as ArrayBuffer'));
       }
     };
     reader.onerror = (error) => reject(error);

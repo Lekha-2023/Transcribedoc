@@ -83,57 +83,10 @@ serve(async (req) => {
         throw new Error(`Upload failed: ${uploadError.message || 'Unknown error during upload'}`);
       }
     } 
-    // For URLs (from storage or demo)
+    // For URLs (from storage)
     else if (audioUrl) {
       console.log(`Starting AssemblyAI transcription for URL: ${audioUrl}`);
-      
-      // For blob URLs in demo mode, we need to fetch and upload the audio
-      if (isDemo && audioUrl.startsWith('blob:')) {
-        try {
-          console.log('Fetching audio from blob URL...');
-          const audioResponse = await fetch(audioUrl);
-          if (!audioResponse.ok) {
-            throw new Error(`Failed to fetch audio from blob URL: ${audioResponse.statusText}`);
-          }
-          
-          const audioBlob = await audioResponse.blob();
-          console.log('Converting blob to base64...');
-          
-          // Convert blob to base64
-          const base64 = await blobToBase64(audioBlob);
-          
-          // Ensure the file type is valid
-          const fileExt = fileName?.split('.').pop() || 'wav';
-          
-          // Upload to AssemblyAI
-          console.log('Uploading audio from blob to AssemblyAI...');
-          const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
-            method: 'POST',
-            headers: {
-              'Authorization': ASSEMBLY_AI_API_KEY,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              data_url: `data:audio/${fileExt};base64,${base64}`
-            }),
-          });
-          
-          if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text();
-            throw new Error(`Failed to upload audio: ${errorText || uploadResponse.statusText}`);
-          }
-          
-          const uploadData = await uploadResponse.json();
-          transcriptionUrl = uploadData.upload_url;
-          console.log('Audio from blob uploaded to AssemblyAI, URL:', transcriptionUrl);
-        } catch (blobError) {
-          console.error('Error processing blob URL:', blobError);
-          throw new Error(`Failed to process blob URL: ${blobError.message}`);
-        }
-      } else {
-        // Direct URL to audio file (e.g. from storage)
-        transcriptionUrl = audioUrl;
-      }
+      transcriptionUrl = audioUrl;
     } else {
       console.error('Missing audioUrl or audioBase64 in request body');
       throw new Error('Audio data is required (URL or base64)');
