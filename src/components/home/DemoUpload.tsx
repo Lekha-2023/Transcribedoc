@@ -10,6 +10,23 @@ import DemoUploadFilePreview from "./DemoUploadFilePreview";
 import DemoUploadResult from "./DemoUploadResult";
 import DemoUploadError from "./DemoUploadError";
 
+const SUPPORTED_AUDIO_TYPES = [
+  "audio/mp3", "audio/mpeg", "audio/wav", "audio/ogg", "audio/webm"
+];
+
+const getFileTypeErrorMsg = (file: File): string | null => {
+  if (file.size === 0) {
+    return "The selected file appears to be empty. Please provide a valid audio file (MP3, WAV, OGG, WEBM)";
+  }
+  if (!SUPPORTED_AUDIO_TYPES.includes(file.type)) {
+    return `Unsupported audio type: "${file.type || "unknown"}" — Please select: MP3, WAV, OGG, or WEBM only.`;
+  }
+  if (file.size > 15 * 1024 * 1024) {
+    return "File too large. Maximum allowed size is 15MB.";
+  }
+  return null;
+};
+
 const DemoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -25,33 +42,27 @@ const DemoUpload = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type before setting
-      const validAudioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
-      if (!validAudioTypes.includes(file.type)) {
-        toast({
-          title: "Invalid file type",
-          description: "Please select a valid audio file (MP3, WAV, OGG, WEBM)",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Check file size (max 15MB)
-      if (file.size > 15 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please select an audio file under 15MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log("Selected file:", file.name, "type:", file.type, "size:", (file.size / 1024 / 1024).toFixed(2) + "MB");
-      setSelectedFile(file);
-      setTranscript("");
-      setUploadError(null);
+    setUploadError(null);
+    setTranscript("");
+    if (!file) return;
+
+    // Log debug info
+    console.log("[DemoUpload] File chosen:", file.name, file.type, file.size);
+
+    // Validate file
+    const errorMsg = getFileTypeErrorMsg(file);
+    if (errorMsg) {
+      setSelectedFile(null);
+      setUploadError(errorMsg);
+      toast({
+        title: "File problem",
+        description: errorMsg,
+        variant: "destructive"
+      });
+      return;
     }
+
+    setSelectedFile(file);
   };
 
   const handleRemoveFile = () => {
@@ -61,7 +72,10 @@ const DemoUpload = () => {
   };
 
   const handleDemoClick = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      setUploadError("No file selected!");
+      return;
+    }
 
     setIsUploading(true);
     setUploadProgress(0);
@@ -69,27 +83,29 @@ const DemoUpload = () => {
 
     // Simulate upload progress
     const progressInterval = setInterval(() => {
-      setUploadProgress((prev) => {
-        const newProgress = prev + Math.random() * 10;
-        return newProgress < 90 ? newProgress : prev;
+      setUploadProgress(prev => {
+        const next = prev + Math.random() * 12;
+        return next < 90 ? next : prev;
       });
-    }, 500);
+    }, 450);
 
     try {
-      console.log("Starting demo transcription for file:", selectedFile.name, "type:", selectedFile.type);
+      console.log("[DemoUpload] Submitting for demo transcription:", selectedFile.name, selectedFile.type, selectedFile.size);
 
-      // Use the demo transcription method with base64 encoding
-      const transcriptionResult = await transcribeDemoAudio(selectedFile);
-      console.log("Transcription completed:", transcriptionResult);
+      // Safeguard (should not reach here with a bad file, but double check)
+      const errorMsg = getFileTypeErrorMsg(selectedFile);
+      if (errorMsg) {
+        throw new Error("File validation failed: " + errorMsg);
+      }
 
+      const result = await transcribeDemoAudio(selectedFile);
       setUploadProgress(100);
 
-      if (transcriptionResult.text) {
-        setTranscript(transcriptionResult.text);
-
+      if (result.text) {
+        setTranscript(result.text);
         toast({
-          title: "Demo Complete",
-          description: "Sign up to unlock full transcription capabilities!",
+          title: "Demo Complete!",
+          description: "Sign up to unlock unlimited and faster transcription.",
           action: (
             <Button
               onClick={() => window.location.href = "/register"}
@@ -101,21 +117,24 @@ const DemoUpload = () => {
           ),
         });
       } else {
-        throw new Error("No transcription text returned");
+        throw new Error("No transcription returned, possible file or service error.");
       }
-    } catch (error) {
-      console.error("Demo transcription error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      setUploadError(`Transcription failed: ${errorMessage}`);
+    } catch (error: any) {
+      console.error("[DemoUpload] Error:", error);
+      let errMsg: string;
+      if (typeof error === "string") errMsg = error;
+      else if (error instanceof Error) errMsg = error.message;
+      else errMsg = "Unknown error submitting file.";
+      setUploadError("Transcription failed: " + errMsg);
       toast({
-        title: "Error",
-        description: "Failed to process the file. Please try again with a different audio file.",
+        title: "Transcription Error",
+        description: errMsg,
         variant: "destructive",
       });
     } finally {
       clearInterval(progressInterval);
       setIsUploading(false);
-      setUploadProgress(0); // Reset progress on completion
+      setUploadProgress(0);
     }
   };
 
@@ -127,7 +146,8 @@ const DemoUpload = () => {
             Try It Now
           </h2>
           <p className="text-lg text-gray-600">
-            Experience the power of AI transcription with a demo upload
+            Experience the power of AI transcription with a demo upload.<br />
+            <span className="text-sm text-gray-500">(MP3, WAV, OGG, or WEBM only. Max 15MB.)</span>
           </p>
         </div>
         <Card className="p-8 bg-white shadow-md">
