@@ -1,10 +1,14 @@
+
 import { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileAudio, Upload, X } from "lucide-react";
+import { Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { transcribeDemoAudio } from "@/lib/services/transcriptionService";
+import DemoUploadFilePicker from "./DemoUploadFilePicker";
+import DemoUploadFilePreview from "./DemoUploadFilePreview";
+import DemoUploadResult from "./DemoUploadResult";
+import DemoUploadError from "./DemoUploadError";
 
 const DemoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -59,11 +63,11 @@ const DemoUpload = () => {
 
     try {
       console.log("Starting demo transcription for file:", selectedFile.name, "type:", selectedFile.type);
-      
+
       // Use the new demo transcription method that bypasses storage
       const transcriptionResult = await transcribeDemoAudio(selectedFile);
       console.log("Transcription completed:", transcriptionResult);
-      
+
       setUploadProgress(100);
 
       if (transcriptionResult.text) {
@@ -111,104 +115,28 @@ const DemoUpload = () => {
             Experience the power of AI transcription with a demo upload
           </p>
         </div>
-
         <Card className="p-8 bg-white shadow-md">
           <div className="flex flex-col items-center space-y-6">
             <div className="w-16 h-16 rounded-full bg-medical-teal/10 flex items-center justify-center">
               <Upload className="h-8 w-8 text-medical-teal" />
             </div>
-
             {!selectedFile ? (
-              <div className="space-y-4 w-full max-w-md text-center">
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept="audio/*"
-                  ref={inputFileRef}
-                  className="hidden"
-                  aria-label="Upload audio file"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleOpenFilePicker}
-                  className="w-full border-medical-teal text-medical-teal hover:bg-medical-teal/10"
-                >
-                  Select Audio File
-                </Button>
-                <p className="text-sm text-gray-500">
-                  Supported formats: MP3, WAV, OGG, WEBM
-                </p>
-              </div>
+              <DemoUploadFilePicker
+                onFileChange={handleFileChange}
+                onBrowseClick={handleOpenFilePicker}
+                inputFileRef={inputFileRef}
+              />
             ) : (
-              <div className="w-full max-w-md">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                  <div className="flex items-center space-x-3">
-                    <FileAudio className="h-10 w-10 text-medical-blue" />
-                    <div className="flex-1 truncate">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {selectedFile.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleRemoveFile}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="mt-6 space-y-4">
-                  {isUploading ? (
-                    <div className="space-y-2">
-                      <Progress value={uploadProgress} className="w-full" />
-                      <p className="text-sm text-center text-gray-500">
-                        {uploadProgress < 100
-                          ? "Processing..."
-                          : "Almost done..."}
-                      </p>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={handleDemoClick}
-                      className="w-full bg-medical-teal hover:bg-medical-teal/90 text-white"
-                      disabled={isUploading}
-                    >
-                      Try Transcription
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <DemoUploadFilePreview
+                file={selectedFile}
+                isUploading={isUploading}
+                uploadProgress={uploadProgress}
+                onRemove={handleRemoveFile}
+                onDemo={handleDemoClick}
+              />
             )}
-
-            {/* Error message display */}
-            {uploadError && (
-              <div className="w-full max-w-md">
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
-                  {uploadError}
-                </div>
-              </div>
-            )}
-
-            {/* Result Section - always visible if transcript exists */}
-            {transcript && (
-              <div className="w-full max-w-md mt-4">
-                <div className="border-t border-gray-200 pt-4">
-                  <h3 className="text-lg font-semibold text-medical-dark mb-2 text-center">
-                    Result
-                  </h3>
-                  <div className="p-4 bg-gray-50 rounded-md shadow-inner">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                      {transcript}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+            {uploadError && <DemoUploadError error={uploadError} />}
+            {transcript && <DemoUploadResult transcript={transcript} />}
           </div>
         </Card>
       </div>
