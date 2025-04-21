@@ -10,20 +10,29 @@ import DemoUploadFilePreview from "./DemoUploadFilePreview";
 import DemoUploadResult from "./DemoUploadResult";
 import DemoUploadError from "./DemoUploadError";
 
-const SUPPORTED_AUDIO_TYPES = [
-  "audio/mp3", "audio/mpeg", "audio/wav", "audio/ogg", "audio/webm"
-];
+const SUPPORTED_AUDIO_TYPES = {
+  "audio/mp3": "mp3",
+  "audio/mpeg": "mp3",
+  "audio/wav": "wav",
+  "audio/ogg": "ogg",
+  "audio/webm": "webm"
+};
 
 const getFileTypeErrorMsg = (file: File): string | null => {
+  if (!file) return "No file selected";
+  
   if (file.size === 0) {
     return "The selected file appears to be empty. Please provide a valid audio file (MP3, WAV, OGG, WEBM)";
   }
-  if (!SUPPORTED_AUDIO_TYPES.includes(file.type)) {
+  
+  if (!Object.keys(SUPPORTED_AUDIO_TYPES).includes(file.type)) {
     return `Unsupported audio type: "${file.type || "unknown"}" — Please select: MP3, WAV, OGG, or WEBM only.`;
   }
+  
   if (file.size > 15 * 1024 * 1024) {
     return "File too large. Maximum allowed size is 15MB.";
   }
+  
   return null;
 };
 
@@ -44,6 +53,7 @@ const DemoUpload = () => {
     const file = event.target.files?.[0];
     setUploadError(null);
     setTranscript("");
+    
     if (!file) return;
 
     // Log debug info
@@ -60,6 +70,17 @@ const DemoUpload = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Additional check for mime type in filename extension
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (fileExtension && !['mp3', 'wav', 'ogg', 'webm'].includes(fileExtension)) {
+      const warningMsg = `File extension '.${fileExtension}' doesn't match a supported audio format. The file may not process correctly.`;
+      console.warn(warningMsg);
+      toast({
+        title: "Warning",
+        description: warningMsg,
+      });
     }
 
     setSelectedFile(file);
@@ -98,7 +119,15 @@ const DemoUpload = () => {
         throw new Error("File validation failed: " + errorMsg);
       }
 
-      const result = await transcribeDemoAudio(selectedFile);
+      // Get file extension from type
+      const fileType = selectedFile.type;
+      const fileExt = SUPPORTED_AUDIO_TYPES[fileType as keyof typeof SUPPORTED_AUDIO_TYPES] || 
+                     selectedFile.name.split('.').pop()?.toLowerCase() || 
+                     'mp3';
+                     
+      console.log(`[DemoUpload] Using file extension: ${fileExt} for type: ${fileType}`);
+
+      const result = await transcribeDemoAudio(selectedFile, fileExt);
       setUploadProgress(100);
 
       if (result.text) {

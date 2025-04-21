@@ -37,9 +37,9 @@ export const transcribeAudio = async (audioUrl: string) => {
 };
 
 // Updated demo transcription function that better handles file data
-export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
+export const transcribeDemoAudio = async (audioFile: File, fileExt: string): Promise<{ text: string }> => {
   try {
-    console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
+    console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size, 'extension:', fileExt);
     
     // Validate file type
     const validAudioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
@@ -68,7 +68,8 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
         audioBase64: base64Data,
         fileName: audioFile.name,
         isDemo: true,
-        fileType: audioFile.type
+        fileType: audioFile.type,
+        fileExt: fileExt
       }
     });
     

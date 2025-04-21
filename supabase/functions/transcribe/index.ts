@@ -19,12 +19,13 @@ serve(async (req) => {
   try {
     // Parse the request body
     const reqBody = await req.json();
-    const { audioUrl, audioBase64, fileName, isDemo, fileType } = reqBody;
+    const { audioUrl, audioBase64, fileName, isDemo, fileType, fileExt } = reqBody;
     
-    console.log(`Received transcription request: ${isDemo ? 'DEMO' : 'REGULAR'}, fileName: ${fileName || 'N/A'}, fileType: ${fileType || 'N/A'}`);
+    const logPrefix = `[Transcribe Function] ${isDemo ? 'DEMO' : 'REGULAR'}`;
+    console.log(`${logPrefix} Received request: fileName=${fileName || 'N/A'}, fileType=${fileType || 'N/A'}, fileExt=${fileExt || 'N/A'}`);
     
     if (!ASSEMBLY_AI_API_KEY) {
-      console.error('AssemblyAI API key is not configured');
+      console.error(`${logPrefix} AssemblyAI API key is not configured`);
       throw new Error('AssemblyAI API key not found');
     }
     
@@ -35,16 +36,16 @@ serve(async (req) => {
       // Check authorization for non-demo transcriptions
       const authHeader = req.headers.get('Authorization');
       if (!authHeader) {
-        console.error('Missing Authorization header');
+        console.error(`${logPrefix} Missing Authorization header`);
         throw new Error('User is not authenticated');
       }
     }
 
     // For demo with direct audio data (base64)
     if (isDemo && audioBase64) {
-      console.log(`Processing demo transcription with base64 data for file: ${fileName || 'unknown'}, size: ${
-        audioBase64 ? (audioBase64.length * 0.75) / 1024 : 'unknown'
-      } KB, type: ${fileType || 'unknown'}`);
+      console.log(`${logPrefix} Processing base64 data for file: ${fileName || 'unknown'}, size: ${
+        audioBase64 ? Math.round((audioBase64.length * 0.75) / 1024) : 'unknown'
+      } KB, type: ${fileType || 'unknown'}, ext: ${fileExt || 'unknown'}`);
       
       // Validate the audio data
       if (!audioBase64 || audioBase64.trim().length === 0) {
@@ -57,24 +58,25 @@ serve(async (req) => {
         throw new Error(`Invalid file type: ${fileType || 'unknown'}`);
       }
       
-      // Get file extension from type or filename
-      const getExtFromType = (type: string) => {
-        const map: Record<string, string> = {
-          'audio/mp3': 'mp3',
-          'audio/mpeg': 'mp3',
-          'audio/wav': 'wav',
-          'audio/ogg': 'ogg',
-          'audio/webm': 'webm'
-        };
-        return map[type] || 'wav';
-      };
+      // Use provided extension or derive from fileType
+      const ext = fileExt || (() => {
+        if (fileType.includes('mp3') || fileType.includes('mpeg')) return 'mp3';
+        if (fileType.includes('wav')) return 'wav';
+        if (fileType.includes('ogg')) return 'ogg';
+        if (fileType.includes('webm')) return 'webm';
+        return 'mp3'; // default fallback
+      })();
       
-      const fileExt = fileName?.split('.').pop() || getExtFromType(fileType);
-      console.log(`Using file extension: ${fileExt}`);
+      console.log(`${logPrefix} Using file extension: ${ext}`);
       
       try {
         // Create a temporary URL by uploading the base64 directly to AssemblyAI
-        console.log('Uploading audio to AssemblyAI...');
+        console.log(`${logPrefix} Uploading audio to AssemblyAI...`);
+        
+        // Format the data URL properly
+        const dataUrl = `data:${fileType};base64,${audioBase64}`;
+        console.log(`${logPrefix} Data URL prefix: ${dataUrl.substring(0, 50)}...`);
+        
         const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
           method: 'POST',
           headers: {
@@ -82,36 +84,36 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            data_url: `data:audio/${fileExt};base64,${audioBase64}`
+            data_url: dataUrl
           }),
         });
         
         if (!uploadResponse.ok) {
           const errorText = await uploadResponse.text();
-          console.error(`AssemblyAI upload error: ${uploadResponse.status} ${uploadResponse.statusText}`, errorText);
+          console.error(`${logPrefix} AssemblyAI upload error: ${uploadResponse.status} ${uploadResponse.statusText}`, errorText);
           throw new Error(`Failed to upload audio data: ${errorText || uploadResponse.statusText}`);
         }
         
         const uploadData = await uploadResponse.json();
         transcriptionUrl = uploadData.upload_url;
-        console.log('Audio uploaded directly to AssemblyAI, URL:', transcriptionUrl);
+        console.log(`${logPrefix} Audio uploaded successfully to AssemblyAI, URL:`, transcriptionUrl);
       } catch (uploadError) {
-        console.error('Error uploading audio to AssemblyAI:', uploadError);
+        console.error(`${logPrefix} Error uploading audio to AssemblyAI:`, uploadError);
         throw new Error(`Upload failed: ${uploadError.message || 'Unknown error during upload'}`);
       }
     } 
     // For URLs (from storage)
     else if (audioUrl) {
-      console.log(`Starting AssemblyAI transcription for URL: ${audioUrl}`);
+      console.log(`${logPrefix} Using provided audio URL: ${audioUrl}`);
       transcriptionUrl = audioUrl;
     } else {
-      console.error('Missing audioUrl or audioBase64 in request body');
+      console.error(`${logPrefix} Missing audioUrl or audioBase64 in request body`);
       throw new Error('Audio data is required (URL or base64)');
     }
 
     // Start transcription
     try {
-      console.log(`Starting transcription with URL: ${transcriptionUrl}`);
+      console.log(`${logPrefix} Starting transcription with URL: ${transcriptionUrl}`);
       const response = await fetch(`${ASSEMBLY_AI_API_URL}/transcript`, {
         method: 'POST',
         headers: {
@@ -126,12 +128,12 @@ serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`AssemblyAI API error: ${response.status} ${response.statusText}`, errorText);
+        console.error(`${logPrefix} AssemblyAI API error: ${response.status} ${response.statusText}`, errorText);
         throw new Error(`AssemblyAI API error: ${errorText || response.statusText}`);
       }
 
       const transcription = await response.json();
-      console.log('Transcription job created:', transcription.id);
+      console.log(`${logPrefix} Transcription job created:`, transcription.id);
 
       // Poll for transcription completion
       let result;
@@ -140,7 +142,7 @@ serve(async (req) => {
       
       while (attempts < maxAttempts) {
         attempts++;
-        console.log(`Polling for transcription result, attempt ${attempts}/${maxAttempts}`);
+        console.log(`${logPrefix} Polling for transcription result, attempt ${attempts}/${maxAttempts}`);
         
         const pollResponse = await fetch(
           `${ASSEMBLY_AI_API_URL}/transcript/${transcription.id}`,
@@ -153,12 +155,12 @@ serve(async (req) => {
 
         if (!pollResponse.ok) {
           const errorText = await pollResponse.text();
-          console.error(`Polling error: ${pollResponse.status} ${pollResponse.statusText}`, errorText);
+          console.error(`${logPrefix} Polling error: ${pollResponse.status} ${pollResponse.statusText}`, errorText);
           throw new Error(`Failed to poll for transcription status: ${errorText || pollResponse.statusText}`);
         }
 
         result = await pollResponse.json();
-        console.log('Current transcription status:', result.status);
+        console.log(`${logPrefix} Current transcription status:`, result.status);
 
         if (result.status === 'completed' || result.status === 'error') {
           break;
@@ -169,23 +171,23 @@ serve(async (req) => {
       }
 
       if (attempts >= maxAttempts) {
-        console.error('Transcription polling timeout');
+        console.error(`${logPrefix} Transcription polling timeout`);
         throw new Error('Transcription timed out');
       }
 
       if (result.status === 'error') {
-        console.error('Transcription failed with status error:', result);
+        console.error(`${logPrefix} Transcription failed with status error:`, result);
         throw new Error('Transcription failed: ' + (result.error || 'Unknown error'));
       }
 
-      console.log('Transcription completed successfully');
+      console.log(`${logPrefix} Transcription completed successfully:`, result.text.substring(0, 100) + '...');
       
       return new Response(
         JSON.stringify({ text: result.text }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (transcriptionError) {
-      console.error('Error during transcription process:', transcriptionError);
+      console.error(`${logPrefix} Error during transcription process:`, transcriptionError);
       throw new Error(`Transcription process error: ${transcriptionError.message || 'Unknown transcription error'}`);
     }
   } catch (error) {
