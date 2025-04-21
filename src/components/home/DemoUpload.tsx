@@ -25,8 +25,15 @@ const getFileTypeErrorMsg = (file: File): string | null => {
     return "The selected file appears to be empty. Please provide a valid audio file (MP3, WAV, OGG, WEBM)";
   }
   
-  if (!Object.keys(SUPPORTED_AUDIO_TYPES).includes(file.type)) {
-    return `Unsupported audio type: "${file.type || "unknown"}" — Please select: MP3, WAV, OGG, or WEBM only.`;
+  // More strictly validate audio MIME types
+  const validTypes = Object.keys(SUPPORTED_AUDIO_TYPES);
+  if (!validTypes.includes(file.type)) {
+    // Check file extension as fallback
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    if (!fileExt || !['mp3', 'wav', 'ogg', 'webm'].includes(fileExt)) {
+      return `Unsupported audio type: "${file.type || "unknown"}" with extension ".${fileExt || "unknown"}". Please select: MP3, WAV, OGG, or WEBM only.`;
+    }
+    console.warn(`File MIME type "${file.type}" not recognized, but extension ".${fileExt}" is valid.`);
   }
   
   if (file.size > 15 * 1024 * 1024) {
@@ -56,9 +63,10 @@ const DemoUpload = () => {
     
     if (!file) return;
 
-    // Log debug info
-    console.log("[DemoUpload] File chosen:", file.name, file.type, file.size);
-
+    // Log detailed file info for debugging
+    console.log("[DemoUpload] File chosen:", file.name, file.type, file.size, "bytes");
+    console.log("[DemoUpload] File extension:", file.name.split('.').pop()?.toLowerCase());
+    
     // Validate file
     const errorMsg = getFileTypeErrorMsg(file);
     if (errorMsg) {
@@ -70,17 +78,6 @@ const DemoUpload = () => {
         variant: "destructive"
       });
       return;
-    }
-
-    // Additional check for mime type in filename extension
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    if (fileExtension && !['mp3', 'wav', 'ogg', 'webm'].includes(fileExtension)) {
-      const warningMsg = `File extension '.${fileExtension}' doesn't match a supported audio format. The file may not process correctly.`;
-      console.warn(warningMsg);
-      toast({
-        title: "Warning",
-        description: warningMsg,
-      });
     }
 
     setSelectedFile(file);
@@ -113,21 +110,11 @@ const DemoUpload = () => {
     try {
       console.log("[DemoUpload] Submitting for demo transcription:", selectedFile.name, selectedFile.type, selectedFile.size);
 
-      // Safeguard (should not reach here with a bad file, but double check)
-      const errorMsg = getFileTypeErrorMsg(selectedFile);
-      if (errorMsg) {
-        throw new Error("File validation failed: " + errorMsg);
-      }
-
-      // Get file extension from type
-      const fileType = selectedFile.type;
-      const fileExt = SUPPORTED_AUDIO_TYPES[fileType as keyof typeof SUPPORTED_AUDIO_TYPES] || 
-                     selectedFile.name.split('.').pop()?.toLowerCase() || 
-                     'mp3';
-                     
-      console.log(`[DemoUpload] Using file extension: ${fileExt} for type: ${fileType}`);
-
-      const result = await transcribeDemoAudio(selectedFile, fileExt);
+      // Perform transcription with simplified approach
+      const result = await transcribeDemoAudio(selectedFile);
+      
+      // Complete the progress
+      clearInterval(progressInterval);
       setUploadProgress(100);
 
       if (result.text) {
@@ -154,6 +141,7 @@ const DemoUpload = () => {
       if (typeof error === "string") errMsg = error;
       else if (error instanceof Error) errMsg = error.message;
       else errMsg = "Unknown error submitting file.";
+      
       setUploadError("Transcription failed: " + errMsg);
       toast({
         title: "Transcription Error",
@@ -163,7 +151,6 @@ const DemoUpload = () => {
     } finally {
       clearInterval(progressInterval);
       setIsUploading(false);
-      setUploadProgress(0);
     }
   };
 

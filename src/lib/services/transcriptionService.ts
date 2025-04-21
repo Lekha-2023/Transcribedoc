@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export const transcribeAudio = async (audioUrl: string) => {
@@ -36,15 +35,17 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
-// Updated demo transcription function that better handles file data
-export const transcribeDemoAudio = async (audioFile: File, fileExt: string): Promise<{ text: string }> => {
+// Updated to fix file processing issues
+export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
   try {
-    console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size, 'extension:', fileExt);
+    console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
     
-    // Validate file type
+    // Validate file type more strictly
     const validAudioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
-    if (!validAudioTypes.includes(audioFile.type)) {
-      throw new Error('Invalid file type. Please select a valid audio file (MP3, WAV, OGG, WEBM).');
+    const fileType = audioFile.type;
+    
+    if (!validAudioTypes.includes(fileType)) {
+      throw new Error(`Invalid file type: ${fileType}. Please select a valid audio file (MP3, WAV, OGG, WEBM).`);
     }
     
     // Check if file is too large (over 15MB)
@@ -52,15 +53,31 @@ export const transcribeDemoAudio = async (audioFile: File, fileExt: string): Pro
       throw new Error('File is too large. Maximum size is 15MB.');
     }
     
-    // Convert the file to base64 - this is more reliable for sending audio data
-    const base64Data = await fileToBase64(audioFile);
-    console.log('File converted to base64, length:', base64Data.length);
+    // Check if file is empty
+    if (audioFile.size === 0) {
+      throw new Error('File appears to be empty. Please select a valid audio file.');
+    }
+    
+    // Extract extension from filename instead of MIME type
+    const fileExtension = audioFile.name.split('.').pop()?.toLowerCase() || '';
+    console.log('File extension from name:', fileExtension);
+    
+    // Convert the file to a blob URL for better compatibility
+    const fileArrayBuffer = await readFileAsArrayBuffer(audioFile);
+    const blob = new Blob([fileArrayBuffer], { type: fileType });
+    
+    // Check blob content
+    console.log('Created blob:', blob.size, 'bytes, type:', blob.type);
+    
+    // Convert blob to base64
+    const base64Data = await blobToBase64(blob);
+    console.log('Converted to base64, length:', base64Data.length);
     
     if (!base64Data || base64Data.length === 0) {
       throw new Error('Failed to convert audio file to base64');
     }
     
-    console.log('Sending base64 audio data to transcribe function...');
+    console.log('Sending audio data to transcribe function...');
     
     // Call the edge function with the base64 data and file info
     const { data, error } = await supabase.functions.invoke('transcribe', {
@@ -68,8 +85,8 @@ export const transcribeDemoAudio = async (audioFile: File, fileExt: string): Pro
         audioBase64: base64Data,
         fileName: audioFile.name,
         isDemo: true,
-        fileType: audioFile.type,
-        fileExt: fileExt
+        fileType: fileType,
+        fileExt: fileExtension
       }
     });
     
@@ -99,7 +116,41 @@ export const transcribeDemoAudio = async (audioFile: File, fileExt: string): Pro
   }
 };
 
-// Convert file to base64 - the most reliable format for sending to API
+// Helper function to read file as ArrayBuffer 
+const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to read file as ArrayBuffer'));
+      }
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+// Helper function to convert Blob to base64
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        // Extract only the base64 data part (remove the data URL prefix)
+        const base64String = reader.result.split(',')[1];
+        resolve(base64String);
+      } else {
+        reject(new Error('Failed to convert blob to base64'));
+      }
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+// Legacy method kept for compatibility
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -111,22 +162,6 @@ const fileToBase64 = (file: File): Promise<string> => {
         resolve(base64String);
       } else {
         reject(new Error('Failed to convert file to base64'));
-      }
-    };
-    reader.onerror = (error) => reject(error);
-  });
-};
-
-// Keep for backward compatibility
-const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file);
-    reader.onload = () => {
-      if (reader.result instanceof ArrayBuffer) {
-        resolve(reader.result);
-      } else {
-        reject(new Error('Failed to read file as ArrayBuffer'));
       }
     };
     reader.onerror = (error) => reject(error);

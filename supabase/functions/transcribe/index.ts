@@ -52,20 +52,20 @@ serve(async (req) => {
         throw new Error('Audio data is empty or invalid');
       }
       
-      // Ensure the file type is valid
-      const validAudioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
-      if (!fileType || !validAudioTypes.includes(fileType)) {
-        throw new Error(`Invalid file type: ${fileType || 'unknown'}`);
+      // Determine file extension - first from fileType, then from file extension, then default
+      let ext = 'mp3'; // Default fallback
+      
+      if (fileType) {
+        if (fileType.includes('mp3') || fileType.includes('mpeg')) ext = 'mp3';
+        else if (fileType.includes('wav')) ext = 'wav';
+        else if (fileType.includes('ogg')) ext = 'ogg';
+        else if (fileType.includes('webm')) ext = 'webm';
       }
       
-      // Use provided extension or derive from fileType
-      const ext = fileExt || (() => {
-        if (fileType.includes('mp3') || fileType.includes('mpeg')) return 'mp3';
-        if (fileType.includes('wav')) return 'wav';
-        if (fileType.includes('ogg')) return 'ogg';
-        if (fileType.includes('webm')) return 'webm';
-        return 'mp3'; // default fallback
-      })();
+      // Override with actual file extension if available
+      if (fileExt && ['mp3', 'wav', 'ogg', 'webm'].includes(fileExt.toLowerCase())) {
+        ext = fileExt.toLowerCase();
+      }
       
       console.log(`${logPrefix} Using file extension: ${ext}`);
       
@@ -73,8 +73,16 @@ serve(async (req) => {
         // Create a temporary URL by uploading the base64 directly to AssemblyAI
         console.log(`${logPrefix} Uploading audio to AssemblyAI...`);
         
-        // Format the data URL properly
-        const dataUrl = `data:${fileType};base64,${audioBase64}`;
+        // Construct proper content type based on extension
+        let contentType = 'audio/mpeg';
+        if (ext === 'wav') contentType = 'audio/wav';
+        else if (ext === 'ogg') contentType = 'audio/ogg';
+        else if (ext === 'webm') contentType = 'audio/webm';
+        
+        // Explicitly format the data URL correctly
+        const dataUrl = `data:${contentType};base64,${audioBase64}`;
+        
+        // For debugging, log the first characters of the URL
         console.log(`${logPrefix} Data URL prefix: ${dataUrl.substring(0, 50)}...`);
         
         const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
@@ -96,10 +104,23 @@ serve(async (req) => {
         
         const uploadData = await uploadResponse.json();
         transcriptionUrl = uploadData.upload_url;
+        
+        if (!transcriptionUrl) {
+          throw new Error('Failed to get upload URL from AssemblyAI');
+        }
+        
         console.log(`${logPrefix} Audio uploaded successfully to AssemblyAI, URL:`, transcriptionUrl);
       } catch (uploadError) {
         console.error(`${logPrefix} Error uploading audio to AssemblyAI:`, uploadError);
-        throw new Error(`Upload failed: ${uploadError.message || 'Unknown error during upload'}`);
+        return new Response(
+          JSON.stringify({ 
+            error: `Upload failed: ${uploadError.message || 'Unknown error during upload'}`
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
     } 
     // For URLs (from storage)
@@ -108,7 +129,13 @@ serve(async (req) => {
       transcriptionUrl = audioUrl;
     } else {
       console.error(`${logPrefix} Missing audioUrl or audioBase64 in request body`);
-      throw new Error('Audio data is required (URL or base64)');
+      return new Response(
+        JSON.stringify({ error: 'Audio data is required (URL or base64)' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Start transcription
@@ -129,7 +156,13 @@ serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`${logPrefix} AssemblyAI API error: ${response.status} ${response.statusText}`, errorText);
-        throw new Error(`AssemblyAI API error: ${errorText || response.statusText}`);
+        return new Response(
+          JSON.stringify({ error: `AssemblyAI API error: ${errorText || response.statusText}` }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
 
       const transcription = await response.json();
@@ -156,7 +189,13 @@ serve(async (req) => {
         if (!pollResponse.ok) {
           const errorText = await pollResponse.text();
           console.error(`${logPrefix} Polling error: ${pollResponse.status} ${pollResponse.statusText}`, errorText);
-          throw new Error(`Failed to poll for transcription status: ${errorText || pollResponse.statusText}`);
+          return new Response(
+            JSON.stringify({ error: `Failed to poll for transcription status: ${errorText || pollResponse.statusText}` }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
         }
 
         result = await pollResponse.json();
@@ -172,12 +211,24 @@ serve(async (req) => {
 
       if (attempts >= maxAttempts) {
         console.error(`${logPrefix} Transcription polling timeout`);
-        throw new Error('Transcription timed out');
+        return new Response(
+          JSON.stringify({ error: 'Transcription timed out' }),
+          {
+            status: 408,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
 
       if (result.status === 'error') {
         console.error(`${logPrefix} Transcription failed with status error:`, result);
-        throw new Error('Transcription failed: ' + (result.error || 'Unknown error'));
+        return new Response(
+          JSON.stringify({ error: 'Transcription failed: ' + (result.error || 'Unknown error') }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
 
       console.log(`${logPrefix} Transcription completed successfully:`, result.text.substring(0, 100) + '...');
@@ -188,14 +239,19 @@ serve(async (req) => {
       );
     } catch (transcriptionError) {
       console.error(`${logPrefix} Error during transcription process:`, transcriptionError);
-      throw new Error(`Transcription process error: ${transcriptionError.message || 'Unknown transcription error'}`);
+      return new Response(
+        JSON.stringify({ error: `Transcription process error: ${transcriptionError.message || 'Unknown transcription error'}` }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
   } catch (error) {
     console.error('Transcription error:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message || 'An unknown error occurred',
-        stack: error.stack
       }),
       {
         status: 500,
