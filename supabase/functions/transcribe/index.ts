@@ -19,14 +19,41 @@ serve(async (req) => {
   try {
     // Parse the request body
     const reqBody = await req.json();
-    const { audioUrl } = reqBody;
+    const { audioUrl, audioBase64, fileName, isDemo } = reqBody;
     
-    if (!audioUrl) {
-      console.error('Missing audioUrl in request body');
-      throw new Error('Audio URL is required');
+    let transcriptionUrl: string;
+    
+    if (isDemo && audioBase64) {
+      console.log(`Processing demo transcription for file: ${fileName || 'unknown'}`);
+      
+      // Create a temporary URL by uploading the base64 directly to AssemblyAI
+      const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': ASSEMBLY_AI_API_KEY!,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data_url: `data:audio/wav;base64,${audioBase64}`
+        }),
+      });
+      
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error(`AssemblyAI upload error: ${uploadResponse.status} ${uploadResponse.statusText}`, errorText);
+        throw new Error(`Failed to upload audio data: ${uploadResponse.statusText}`);
+      }
+      
+      const uploadData = await uploadResponse.json();
+      transcriptionUrl = uploadData.upload_url;
+      console.log('Audio uploaded directly to AssemblyAI, URL:', transcriptionUrl);
+    } else if (audioUrl) {
+      console.log(`Starting AssemblyAI transcription for: ${audioUrl}`);
+      transcriptionUrl = audioUrl;
+    } else {
+      console.error('Missing audioUrl or audioBase64 in request body');
+      throw new Error('Audio data is required (URL or base64)');
     }
-
-    console.log(`Starting AssemblyAI transcription for: ${audioUrl}`);
     
     if (!ASSEMBLY_AI_API_KEY) {
       console.error('AssemblyAI API key is not configured');
@@ -41,7 +68,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        audio_url: audioUrl,
+        audio_url: transcriptionUrl,
         language_code: 'en',
       }),
     })

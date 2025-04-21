@@ -1,12 +1,10 @@
-
 import { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileAudio, Upload, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { uploadToStorage } from "@/lib/storage/fileStorage";
-import { transcribeAudio } from "@/lib/services/transcriptionService";
+import { transcribeDemoAudio } from "@/lib/services/transcriptionService";
 
 const DemoUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -60,17 +58,10 @@ const DemoUpload = () => {
     }, 500);
 
     try {
-      // Generate a temporary demo file ID, store under 'demo' user
-      const demoFileId = `demo_${Date.now()}`;
-      console.log("Starting upload for file:", selectedFile.name, "type:", selectedFile.type);
-
-      // Upload the file
-      const publicUrl = await uploadToStorage(selectedFile, "demo", demoFileId);
-      console.log("File uploaded successfully, URL:", publicUrl);
+      console.log("Starting demo transcription for file:", selectedFile.name, "type:", selectedFile.type);
       
-      // Call transcription
-      console.log("Starting transcription process...");
-      const transcriptionResult = await transcribeAudio(publicUrl);
+      // Use the new demo transcription method that bypasses storage
+      const transcriptionResult = await transcribeDemoAudio(selectedFile);
       console.log("Transcription completed:", transcriptionResult);
       
       setUploadProgress(100);

@@ -36,6 +36,61 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
+// New function for demo transcription that bypasses storage and uploads directly to the edge function
+export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
+  try {
+    console.log('Starting demo transcription for file:', audioFile.name);
+    
+    // Convert the file to base64 for direct transmission
+    const base64Audio = await fileToBase64(audioFile);
+    
+    console.log('File converted to base64, calling transcribe edge function...');
+    
+    // Call the edge function directly with the base64 data
+    const { data, error } = await supabase.functions.invoke('transcribe', {
+      body: { 
+        audioBase64: base64Audio,
+        fileName: audioFile.name,
+        isDemo: true
+      }
+    });
+    
+    if (error) {
+      console.error('Demo transcription error:', error);
+      throw error;
+    }
+    
+    console.log('Demo transcription completed:', data);
+    
+    if (!data || !data.text) {
+      throw new Error('No transcription text found in response');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Demo transcription error:', error);
+    throw new Error(`Demo transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+// Helper function to convert file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        // Remove the data URL prefix (e.g., "data:audio/wav;base64,")
+        const base64String = reader.result.split(',')[1];
+        resolve(base64String);
+      } else {
+        reject(new Error('Failed to convert file to base64'));
+      }
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 export const sendResultsViaEmail = async (
   fileId: string, 
   userId: string, 
