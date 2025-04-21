@@ -23,18 +23,35 @@ serve(async (req) => {
     
     let transcriptionUrl: string;
     
+    // For demo requests, we don't need authentication
+    if (!isDemo) {
+      // Check authorization for non-demo transcriptions
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        console.error('Missing Authorization header');
+        throw new Error('User is not authenticated');
+      }
+    }
+
     if (isDemo && audioBase64) {
-      console.log(`Processing demo transcription for file: ${fileName || 'unknown'}`);
+      console.log(`Processing demo transcription for file: ${fileName || 'unknown'}, size: ${
+        audioBase64 ? (audioBase64.length * 0.75) / 1024 : 'unknown'
+      } KB`);
+      
+      if (!ASSEMBLY_AI_API_KEY) {
+        console.error('AssemblyAI API key is not configured');
+        throw new Error('AssemblyAI API key not found');
+      }
       
       // Create a temporary URL by uploading the base64 directly to AssemblyAI
       const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
         method: 'POST',
         headers: {
-          'Authorization': ASSEMBLY_AI_API_KEY!,
+          'Authorization': ASSEMBLY_AI_API_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          data_url: `data:audio/wav;base64,${audioBase64}`
+          data_url: `data:audio/${fileName?.split('.').pop() || 'wav'};base64,${audioBase64}`
         }),
       });
       

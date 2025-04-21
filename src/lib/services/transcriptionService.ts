@@ -36,14 +36,18 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
-// New function for demo transcription that bypasses storage and uploads directly to the edge function
+// Demo transcription function with improved error handling
 export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
   try {
-    console.log('Starting demo transcription for file:', audioFile.name);
+    console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
+    
+    // Check if file is too large (over 15MB)
+    if (audioFile.size > 15 * 1024 * 1024) {
+      throw new Error('File is too large. Maximum size is 15MB.');
+    }
     
     // Convert the file to base64 for direct transmission
     const base64Audio = await fileToBase64(audioFile);
-    
     console.log('File converted to base64, calling transcribe edge function...');
     
     // Call the edge function directly with the base64 data
@@ -56,13 +60,17 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
     });
     
     if (error) {
-      console.error('Demo transcription error:', error);
-      throw error;
+      console.error('Demo transcription error from edge function:', error);
+      throw new Error(`Edge Function error: ${error.message || error}`);
     }
     
-    console.log('Demo transcription completed:', data);
+    console.log('Demo transcription response:', data);
     
-    if (!data || !data.text) {
+    if (!data) {
+      throw new Error('No data returned from transcription service');
+    }
+    
+    if (!data.text) {
       throw new Error('No transcription text found in response');
     }
     
