@@ -13,7 +13,7 @@ export async function uploadAudioToAssemblyAI({
   let transcriptionUrl = "";
   // For demo with direct audio data (base64)
   if (isDemo && audioBase64) {
-    // getContentType is assumed to be imported at the top
+    // Get content type from file information
     const { ext, contentType } = await import('./getContentType.ts').then(m =>
       m.getContentType(fileType, fileExt)
     );
@@ -34,20 +34,14 @@ export async function uploadAudioToAssemblyAI({
     try {
       console.log(`${logPrefix} Uploading audio to AssemblyAI...`);
 
-      // FIXED: Use raw base64 content instead of data URL format
-      // AssemblyAI expects base64 encoded content directly
+      // Upload audio data to AssemblyAI
       const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
         method: "POST",
         headers: {
           Authorization: ASSEMBLY_AI_API_KEY,
-          "Content-Type": "application/json",
+          "Content-Type": contentType,
         },
-        body: JSON.stringify({
-          // Important fix: use raw_base64 for proper audio data encoding
-          raw_base64: audioBase64,
-          // Send content type explicitly for better audio format detection
-          content_type: contentType,
-        }),
+        body: Buffer.from(audioBase64, 'base64'),
       });
 
       if (!uploadResponse.ok) {
@@ -68,7 +62,7 @@ export async function uploadAudioToAssemblyAI({
         `${logPrefix} Audio uploaded successfully to AssemblyAI, URL:`,
         transcriptionUrl
       );
-    } catch (uploadError: any) {
+    } catch (uploadError) {
       throw new Error(uploadError.message || "Unknown error during upload");
     }
   }

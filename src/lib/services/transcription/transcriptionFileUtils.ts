@@ -19,7 +19,7 @@ export const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
   });
 };
 
-// Direct conversion of ArrayBuffer to base64 without Blob
+// Convert ArrayBuffer to base64 string (without data URL prefix)
 export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -30,21 +30,8 @@ export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   return btoa(binary);
 };
 
-// Legacy blobToBase64 helper - kept for reference
-export const blobToBase64 = (blob: Blob): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        // Extract only the base64 data part (remove the data URL prefix)
-        const base64String = reader.result.split(',')[1];
-        resolve(base64String);
-      } else {
-        reject(new Error('Failed to convert blob to base64'));
-      }
-    };
-    reader.onerror = (error) => reject(error);
-    reader.readAsDataURL(blob);
-  });
+// Read file and convert to base64 in one step
+export const fileToBase64 = async (file: File): Promise<string> => {
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  return arrayBufferToBase64(arrayBuffer);
 };
-

@@ -46,7 +46,7 @@ serve(async (req) => {
       throw new Error("Audio base64 data is required for demo transcriptions");
     }
 
-    let transcriptionUrl: string;
+    let transcriptionUrl;
 
     if (!isDemo) {
       const authHeader = req.headers.get("Authorization");
@@ -67,7 +67,7 @@ serve(async (req) => {
         ASSEMBLY_AI_API_URL,
         logPrefix,
       });
-    } catch (uploadError: any) {
+    } catch (uploadError) {
       console.error(`${logPrefix} Error uploading audio:`, uploadError);
       return new Response(
         JSON.stringify({
@@ -129,7 +129,7 @@ serve(async (req) => {
           JSON.stringify({ text }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
-      } catch (pollError: any) {
+      } catch (pollError) {
         console.error(`${logPrefix} Error polling for transcription:`, pollError.message);
         return new Response(
           JSON.stringify({
@@ -141,7 +141,7 @@ serve(async (req) => {
           }
         );
       }
-    } catch (transcriptionError: any) {
+    } catch (transcriptionError) {
       console.error(`${logPrefix} Transcription process error:`, transcriptionError.message);
       return new Response(
         JSON.stringify({
@@ -155,7 +155,7 @@ serve(async (req) => {
         }
       );
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error(`[Transcribe Function] General error:`, error.message);
     return new Response(
       JSON.stringify({

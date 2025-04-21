@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { readFileAsArrayBuffer, arrayBufferToBase64 } from "./transcriptionFileUtils";
+import { fileToBase64 } from "./transcriptionFileUtils";
 
 /**
  * Handles demo audio transcription including strict validation & progress.
@@ -27,18 +27,13 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       throw new Error('File appears to be empty. Please select a valid audio file.');
     }
     
-    // Get audio as raw binary data
-    const fileBuffer = await readFileAsArrayBuffer(audioFile);
-    
     // Extract file extension properly
     const fileExt = audioFile.name.split('.').pop()?.toLowerCase() || '';
+    console.log('Processing file:', audioFile.name, 'type:', fileType, 'extension:', fileExt);
     
-    // Convert audio buffer directly to base64
-    const base64String = arrayBufferToBase64(fileBuffer);
-    
+    // Convert audio directly to base64
+    const base64String = await fileToBase64(audioFile);
     console.log('File converted to base64, length:', base64String.length);
-    console.log('File extension:', fileExt);
-    console.log('File MIME type:', fileType);
     
     // Call the edge function with properly formatted data
     const { data, error } = await supabase.functions.invoke('transcribe', {
