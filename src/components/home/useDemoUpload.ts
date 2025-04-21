@@ -71,14 +71,7 @@ export function useDemoUpload() {
 
       if (result.text) {
         setTranscript(result.text);
-        toast({
-          title: "Demo Complete!",
-          description: "Sign up to unlock unlimited and faster transcription.",
-          action: {
-            label: "Sign Up",
-            onClick: () => window.location.href = "/register"
-          }
-        });
+        // We'll let the DemoUpload component handle the toast with JSX
       } else {
         throw new Error("No transcription returned, possible file or service error.");
       }
