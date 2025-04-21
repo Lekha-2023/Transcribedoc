@@ -10,6 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
+const demoMainBg =
+  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=80"; // Healthcare professionals
+
 const DemoUpload = () => {
   const {
     selectedFile,
@@ -23,10 +26,10 @@ const DemoUpload = () => {
     handleRemoveFile,
     handleDemoClick,
   } = useDemoUpload();
-  
+
   // We need to customize the toast component since we can't use JSX in the hook
   const { toast } = useToast();
-  
+
   // Create a helper to render the button for the toast
   const createSignUpButton = () => {
     return (
@@ -39,7 +42,7 @@ const DemoUpload = () => {
       </Button>
     );
   };
-  
+
   // Update the toast handler
   useEffect(() => {
     if (transcript) {
@@ -65,8 +68,20 @@ const DemoUpload = () => {
         </div>
         <Card className="p-8 bg-white shadow-md">
           <div className="flex flex-col items-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-medical-teal/10 flex items-center justify-center">
-              <Upload className="h-8 w-8 text-medical-teal" />
+            {/* Circular background main icon area */}
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center relative mb-4"
+              style={{
+                backgroundImage: `url(${demoMainBg})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                overflow: 'hidden',
+                boxShadow: '0 2px 16px 0 rgba(30, 174, 219, 0.12)',
+              }}
+            >
+              {/* Overlay for readability */}
+              <div className="absolute inset-0 bg-medical-blue/80 rounded-full pointer-events-none"></div>
+              <Upload className="h-8 w-8 text-white z-10" />
             </div>
             {!selectedFile ? (
               <DemoUploadFilePicker
