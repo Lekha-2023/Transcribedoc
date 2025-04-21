@@ -7,7 +7,6 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import BenefitsSection from "@/components/home/BenefitsSection";
 import DemoUpload from "@/components/home/DemoUpload";
-// Removed: import ImageGallerySection from "@/components/home/ImageGallerySection";
 
 const Index = () => {
   const isLoggedIn = isAuthenticated();
@@ -19,7 +18,6 @@ const Index = () => {
       <FeaturesSection />
       <DemoUpload />
       <BenefitsSection />
-      {/* Removed: <ImageGallerySection /> */}
       <Footer />
     </div>
   );

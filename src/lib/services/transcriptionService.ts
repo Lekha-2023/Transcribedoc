@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const transcribeAudio = async (audioUrl: string) => {
@@ -35,7 +36,7 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
-// Fixed audio file handling
+// Fixed audio file handling for demo transcription
 export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
   try {
     console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
@@ -58,41 +59,41 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       throw new Error('File appears to be empty. Please select a valid audio file.');
     }
     
-    // Extract extension from filename instead of MIME type
-    const fileExtension = audioFile.name.split('.').pop()?.toLowerCase() || '';
-    console.log('File extension from name:', fileExtension);
+    // Read file as ArrayBuffer first
+    const fileArrayBuffer = await readFileAsArrayBuffer(audioFile);
     
-    // Use FileReader to read file as ArrayBuffer
-    const audioArrayBuffer = await readFileAsArrayBuffer(audioFile);
-    
-    // Create proper audio Blob with correct MIME type
-    const audioBlob = new Blob([audioArrayBuffer], { type: fileType });
-    console.log('Created blob:', audioBlob.size, 'bytes, type:', audioBlob.type);
+    // Create a proper binary Blob with correct MIME type
+    const audioBlob = new Blob([fileArrayBuffer], { type: fileType });
+    console.log('Created audio blob:', audioBlob.size, 'bytes, type:', audioBlob.type);
     
     // Convert blob to base64 string
-    const audioBase64 = await blobToBase64(audioBlob);
-    console.log('Converted to base64, length:', audioBase64.length);
+    const base64Data = await blobToBase64(audioBlob);
+    console.log('Converted to base64, length:', base64Data.length);
     
-    if (!audioBase64 || audioBase64.length === 0) {
+    if (!base64Data || base64Data.length === 0) {
       throw new Error('Failed to convert audio file to base64');
     }
     
+    // Get file extension - more important than MIME type for some backends
+    const fileExt = audioFile.name.split('.').pop()?.toLowerCase() || '';
+    console.log('File extension:', fileExt);
+    
     console.log('Sending audio data to transcribe function...');
     
-    // Call the edge function with proper parameters
+    // Call the edge function with the proper data format
     const { data, error } = await supabase.functions.invoke('transcribe', {
       body: { 
-        audioBase64: audioBase64,
+        audioBase64: base64Data,
         fileName: audioFile.name,
         isDemo: true,
         fileType: fileType,
-        fileExt: fileExtension
+        fileExt: fileExt
       }
     });
     
     if (error) {
-      console.error('Demo transcription error from edge function:', error);
-      throw new Error(`Edge Function error: ${error.message || JSON.stringify(error)}`);
+      console.error('Demo transcription error:', error);
+      throw new Error(`Edge Function error: ${error.message || 'Unknown error'}`);
     }
     
     console.log('Demo transcription response:', data);

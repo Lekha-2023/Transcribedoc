@@ -31,7 +31,7 @@ const DemoUploadFilePreview = ({
         <div className="flex-1 truncate">
           <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
           <p className="text-xs text-gray-500">
-            {(file.size / 1024 / 1024).toFixed(2)} MB
+            {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type.split('/')[1]?.toUpperCase() || 'AUDIO'}
           </p>
         </div>
         {!isUploading && (
@@ -40,6 +40,7 @@ const DemoUploadFilePreview = ({
             onClick={onRemove}
             className="text-gray-400 hover:text-gray-500 flex-shrink-0"
             disabled={isUploading}
+            aria-label="Remove file"
           >
             <X className="h-5 w-5" />
           </button>
