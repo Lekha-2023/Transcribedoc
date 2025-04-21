@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { isAuthenticated } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
@@ -6,7 +7,7 @@ import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import BenefitsSection from "@/components/home/BenefitsSection";
 import DemoUpload from "@/components/home/DemoUpload";
-import ImageGallerySection from "@/components/home/ImageGallerySection";
+// Removed: import ImageGallerySection from "@/components/home/ImageGallerySection";
 
 const Index = () => {
   const isLoggedIn = isAuthenticated();
@@ -18,10 +19,11 @@ const Index = () => {
       <FeaturesSection />
       <DemoUpload />
       <BenefitsSection />
-      <ImageGallerySection />
+      {/* Removed: <ImageGallerySection /> */}
       <Footer />
     </div>
   );
 };
 
 export default Index;
+
