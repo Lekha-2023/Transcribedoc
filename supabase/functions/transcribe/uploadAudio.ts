@@ -34,10 +34,8 @@ export async function uploadAudioToAssemblyAI({
     try {
       console.log(`${logPrefix} Uploading audio to AssemblyAI...`);
 
-      // Proper content type based on extension
-      const dataUrl = `data:${contentType};base64,${audioBase64}`;
-      console.log(`${logPrefix} Data URL prefix: ${dataUrl.substring(0, 50)}...`);
-
+      // FIXED: Use raw base64 content instead of data URL format
+      // AssemblyAI expects base64 encoded content directly
       const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
         method: "POST",
         headers: {
@@ -45,7 +43,10 @@ export async function uploadAudioToAssemblyAI({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          data_url: dataUrl,
+          // Important fix: use raw_base64 for proper audio data encoding
+          raw_base64: audioBase64,
+          // Send content type explicitly for better audio format detection
+          content_type: contentType,
         }),
       });
 

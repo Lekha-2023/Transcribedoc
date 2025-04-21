@@ -64,18 +64,17 @@ const DemoUpload = () => {
       }}
     >
       {/* Overlay for contrast */}
-      <div className="absolute inset-0 bg-white/70 pointer-events-none z-0" />
+      <div className="absolute inset-0 bg-white/80 pointer-events-none z-0" />
       <div className="container mx-auto max-w-4xl relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-medical-dark mb-4">
             Try It Now
           </h2>
-          <p className="text-lg text-medical-dark">
+          <p className="text-lg text-medical-dark mb-2">
             Experience the power of AI transcription with a demo upload.
-            <br />
-            <span className="text-sm text-gray-500">
-              (MP3, WAV, OGG, or WEBM only. Max 15MB.)
-            </span>
+          </p>
+          <p className="text-sm text-gray-600">
+            Upload any MP3, WAV, OGG, or WEBM audio file (max 15MB).
           </p>
         </div>
         <Card className="p-8 bg-white shadow-md relative z-10">
@@ -117,4 +116,3 @@ const DemoUpload = () => {
 };
 
 export default DemoUpload;
-

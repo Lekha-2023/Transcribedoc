@@ -36,7 +36,7 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
-// Fixed audio file handling for demo transcription
+// Demo transcription with improved audio handling
 export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
   try {
     console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
@@ -59,31 +59,24 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       throw new Error('File appears to be empty. Please select a valid audio file.');
     }
     
-    // Read file as ArrayBuffer first
-    const fileArrayBuffer = await readFileAsArrayBuffer(audioFile);
+    // CRITICAL FIX: Get audio as raw binary data, not as ArrayBuffer
+    const fileBuffer = await readFileAsArrayBuffer(audioFile);
     
-    // Create a proper binary Blob with correct MIME type
-    const audioBlob = new Blob([fileArrayBuffer], { type: fileType });
-    console.log('Created audio blob:', audioBlob.size, 'bytes, type:', audioBlob.type);
-    
-    // Convert blob to base64 string
-    const base64Data = await blobToBase64(audioBlob);
-    console.log('Converted to base64, length:', base64Data.length);
-    
-    if (!base64Data || base64Data.length === 0) {
-      throw new Error('Failed to convert audio file to base64');
-    }
-    
-    // Get file extension - more important than MIME type for some backends
+    // Extract file extension properly
     const fileExt = audioFile.name.split('.').pop()?.toLowerCase() || '';
+    
+    // Convert audio buffer directly to base64 without creating a blob
+    // This avoids potential format conversion issues
+    const base64String = arrayBufferToBase64(fileBuffer);
+    
+    console.log('File converted to base64, length:', base64String.length);
     console.log('File extension:', fileExt);
+    console.log('File MIME type:', fileType);
     
-    console.log('Sending audio data to transcribe function...');
-    
-    // Call the edge function with the proper data format
+    // Call the edge function with properly formatted data
     const { data, error } = await supabase.functions.invoke('transcribe', {
       body: { 
-        audioBase64: base64Data,
+        audioBase64: base64String,
         fileName: audioFile.name,
         isDemo: true,
         fileType: fileType,
@@ -95,8 +88,6 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       console.error('Demo transcription error:', error);
       throw new Error(`Edge Function error: ${error.message || 'Unknown error'}`);
     }
-    
-    console.log('Demo transcription response:', data);
     
     if (!data) {
       throw new Error('No data returned from transcription service');
@@ -133,7 +124,18 @@ const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
   });
 };
 
-// Helper function to convert Blob to base64
+// IMPROVED: Direct conversion of ArrayBuffer to base64 without Blob
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+};
+
+// Legacy blobToBase64 helper - kept for reference
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
