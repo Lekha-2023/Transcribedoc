@@ -19,7 +19,9 @@ serve(async (req) => {
   try {
     // Parse the request body
     const reqBody = await req.json();
-    const { audioUrl, audioBase64, fileName, isDemo } = reqBody;
+    const { audioUrl, audioBase64, fileName, isDemo, fileType } = reqBody;
+    
+    console.log(`Received transcription request: ${isDemo ? 'DEMO' : 'REGULAR'}, fileName: ${fileName || 'N/A'}, fileType: ${fileType || 'N/A'}`);
     
     if (!ASSEMBLY_AI_API_KEY) {
       console.error('AssemblyAI API key is not configured');
@@ -41,10 +43,20 @@ serve(async (req) => {
     if (isDemo && audioBase64) {
       console.log(`Processing demo transcription for file: ${fileName || 'unknown'}, size: ${
         audioBase64 ? (audioBase64.length * 0.75) / 1024 : 'unknown'
-      } KB`);
+      } KB, type: ${fileType || 'unknown'}`);
+      
+      // Validate the audio data
+      if (!audioBase64 || audioBase64.trim().length === 0) {
+        throw new Error('Audio data is empty or invalid');
+      }
+      
+      // Ensure the file type is valid
+      const fileExt = fileName?.split('.').pop() || 'wav';
+      console.log(`Using file extension: ${fileExt}`);
       
       try {
         // Create a temporary URL by uploading the base64 directly to AssemblyAI
+        console.log('Uploading audio to AssemblyAI...');
         const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
           method: 'POST',
           headers: {
@@ -52,7 +64,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            data_url: `data:audio/${fileName?.split('.').pop() || 'wav'};base64,${audioBase64}`
+            data_url: `data:audio/${fileExt};base64,${audioBase64}`
           }),
         });
         
@@ -79,6 +91,7 @@ serve(async (req) => {
 
     // Start transcription
     try {
+      console.log(`Starting transcription with URL: ${transcriptionUrl}`);
       const response = await fetch(`${ASSEMBLY_AI_API_URL}/transcript`, {
         method: 'POST',
         headers: {

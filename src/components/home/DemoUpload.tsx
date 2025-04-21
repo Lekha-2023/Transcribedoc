@@ -26,6 +26,7 @@ const DemoUpload = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type before setting
       if (!file.type.startsWith("audio/")) {
         toast({
           title: "Invalid file type",
@@ -34,6 +35,18 @@ const DemoUpload = () => {
         });
         return;
       }
+      
+      // Check file size (max 15MB)
+      if (file.size > 15 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an audio file under 15MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log("Selected file:", file.name, "type:", file.type, "size:", (file.size / 1024 / 1024).toFixed(2) + "MB");
       setSelectedFile(file);
       setTranscript("");
       setUploadError(null);
@@ -95,7 +108,7 @@ const DemoUpload = () => {
       setUploadError(`Transcription failed: ${errorMessage}`);
       toast({
         title: "Error",
-        description: "Failed to process the file. Please try again.",
+        description: "Failed to process the file. Please try again with a different audio file.",
         variant: "destructive",
       });
     } finally {

@@ -53,14 +53,21 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
     
     // Convert the file to base64 for direct transmission
     const base64Audio = await fileToBase64(audioFile);
-    console.log('File converted to base64, length:', base64Audio.length, 'calling transcribe edge function...');
+    console.log('File converted to base64, length:', base64Audio.length);
+    
+    if (!base64Audio || base64Audio.length === 0) {
+      throw new Error('Failed to convert audio file to base64');
+    }
+    
+    console.log('Calling transcribe edge function with base64 data...');
     
     // Call the edge function directly with the base64 data
     const { data, error } = await supabase.functions.invoke('transcribe', {
       body: { 
         audioBase64: base64Audio,
         fileName: audioFile.name,
-        isDemo: true
+        isDemo: true,
+        fileType: audioFile.type
       }
     });
     
