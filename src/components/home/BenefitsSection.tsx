@@ -1,5 +1,5 @@
 
-import { Clock, Lock, BarChart4, FileText } from "lucide-react";
+import { Clock, Lock, BarChart4, FileText, BadgeDollarSign } from "lucide-react";
 
 const BenefitsSection = () => {
   return (
@@ -68,6 +68,22 @@ const BenefitsSection = () => {
               </p>
             </div>
           </div>
+
+          {/* Cost Affordability Card */}
+          <div className="flex bg-white rounded-lg p-6 shadow-md">
+            <div className="mr-5">
+              <div className="h-10 w-10 bg-medical-blue/10 flex items-center justify-center rounded-lg">
+                <BadgeDollarSign className="h-5 w-5 text-medical-blue" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-medical-dark mb-2">Cost Affordability</h3>
+              <p className="text-gray-600">
+                Enjoy competitive and transparent pricing designed to make powerful transcription accessible to all healthcare professionals.
+              </p>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
