@@ -1,11 +1,10 @@
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileAudio, Upload, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
 import { uploadToStorage } from "@/lib/storage/fileStorage";
 import { transcribeAudio } from "@/lib/services/transcriptionService";
 
@@ -14,16 +13,21 @@ const DemoUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [transcript, setTranscript] = useState<string>("");
+  const inputFileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleOpenFilePicker = () => {
+    inputFileRef.current?.click();
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (!file.type.startsWith('audio/')) {
+      if (!file.type.startsWith("audio/")) {
         toast({
           title: "Invalid file type",
           description: "Please select an audio file (MP3, WAV, OGG, WEBM)",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -43,36 +47,35 @@ const DemoUpload = () => {
     setIsUploading(true);
     setUploadProgress(0);
 
-    // Simulate initial upload progress
+    // Simulate upload progress
     const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
+      setUploadProgress((prev) => {
         const newProgress = prev + Math.random() * 15;
         return newProgress < 90 ? newProgress : prev;
       });
     }, 500);
 
     try {
-      // Generate a temporary demo file ID
+      // Generate a temporary demo file ID, store under 'demo' user
       const demoFileId = `demo_${Date.now()}`;
-      
-      // Upload the file to storage
-      const publicUrl = await uploadToStorage(selectedFile, 'demo', demoFileId);
-      
-      // Start transcription
+
+      // Upload the file
+      const publicUrl = await uploadToStorage(selectedFile, "demo", demoFileId);
+
+      // Call transcription
       const transcriptionResult = await transcribeAudio(publicUrl);
       setUploadProgress(100);
 
       if (transcriptionResult.text) {
         setTranscript(transcriptionResult.text);
-        
-        // Show success toast with CTA
+
         toast({
           title: "Demo Complete",
           description: "Sign up to unlock full transcription capabilities!",
           action: (
-            <Button 
-              onClick={() => window.location.href = '/register'}
-              variant="outline" 
+            <Button
+              onClick={() => window.location.href = "/register"}
+              variant="outline"
               className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
             >
               Sign Up
@@ -81,11 +84,11 @@ const DemoUpload = () => {
         });
       }
     } catch (error) {
-      console.error('Demo transcription error:', error);
+      console.error("Demo transcription error:", error);
       toast({
         title: "Error",
         description: "Failed to process the file. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       clearInterval(progressInterval);
@@ -113,21 +116,22 @@ const DemoUpload = () => {
 
             {!selectedFile ? (
               <div className="space-y-4 w-full max-w-md text-center">
-                <label className="block">
-                  <input
-                    type="file"
-                    onChange={handleFileChange}
-                    accept="audio/*"
-                    className="hidden"
-                  />
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    className="w-full border-medical-teal text-medical-teal hover:bg-medical-teal/10"
-                  >
-                    Select Audio File
-                  </Button>
-                </label>
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="audio/*"
+                  ref={inputFileRef}
+                  className="hidden"
+                  aria-label="Upload audio file"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleOpenFilePicker}
+                  className="w-full border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+                >
+                  Select Audio File
+                </Button>
                 <p className="text-sm text-gray-500">
                   Supported formats: MP3, WAV, OGG, WEBM
                 </p>
@@ -153,13 +157,15 @@ const DemoUpload = () => {
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-                
+
                 <div className="mt-6 space-y-4">
                   {isUploading ? (
                     <div className="space-y-2">
                       <Progress value={uploadProgress} className="w-full" />
                       <p className="text-sm text-center text-gray-500">
-                        {uploadProgress < 100 ? 'Processing...' : 'Almost done...'}
+                        {uploadProgress < 100
+                          ? "Processing..."
+                          : "Almost done..."}
                       </p>
                     </div>
                   ) : (
@@ -171,13 +177,22 @@ const DemoUpload = () => {
                       Try Transcription
                     </Button>
                   )}
+                </div>
+              </div>
+            )}
 
-                  {transcript && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-md">
-                      <h3 className="text-sm font-medium text-gray-900 mb-2">Transcription Result:</h3>
-                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{transcript}</p>
-                    </div>
-                  )}
+            {/* Result Section - always visible if transcript exists */}
+            {transcript && (
+              <div className="w-full max-w-md mt-8">
+                <div className="border-t border-gray-200 pt-4">
+                  <h3 className="text-lg font-semibold text-medical-dark mb-2 text-center">
+                    Result
+                  </h3>
+                  <div className="p-4 bg-gray-50 rounded-md shadow-inner">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                      {transcript}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
