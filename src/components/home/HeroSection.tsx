@@ -6,16 +6,16 @@ interface HeroSectionProps {
   isLoggedIn: boolean;
 }
 
-// Use an Unsplash healthcare image as a background, with styling overlay for clarity.
+// Use a provided healthcare-related image as a background, with styling overlay for clarity.
 const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
   return (
     <section className="relative h-[85vh] flex items-center select-none">
-      {/* Stronger visual with healthcare-specific placeholder image and gradient overlay */}
+      {/* Stronger visual with provided healthcare image and gradient overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage:
-            'url("https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=1200&q=80")',
+            'url("/lovable-uploads/3d7ea3fa-8161-4bda-9b4e-f6aafcb1946c.png")',
         }}
         aria-hidden="true"
       />
