@@ -1,7 +1,6 @@
 
 import { useRef, useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { transcribeDemoAudio } from "@/lib/services/transcriptionService";
 import { getFileTypeErrorMsg } from "./DemoUploadUtils";
 
@@ -75,15 +74,10 @@ export function useDemoUpload() {
         toast({
           title: "Demo Complete!",
           description: "Sign up to unlock unlimited and faster transcription.",
-          action: (
-            <Button
-              onClick={() => window.location.href = "/register"}
-              variant="outline"
-              className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
-            >
-              Sign Up
-            </Button>
-          ),
+          action: {
+            label: "Sign Up",
+            onClick: () => window.location.href = "/register"
+          }
         });
       } else {
         throw new Error("No transcription returned, possible file or service error.");

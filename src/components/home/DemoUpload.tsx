@@ -6,6 +6,9 @@ import DemoUploadFilePreview from "./DemoUploadFilePreview";
 import DemoUploadResult from "./DemoUploadResult";
 import DemoUploadError from "./DemoUploadError";
 import { useDemoUpload } from "./useDemoUpload";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 const DemoUpload = () => {
   const {
@@ -20,6 +23,33 @@ const DemoUpload = () => {
     handleRemoveFile,
     handleDemoClick,
   } = useDemoUpload();
+  
+  // We need to customize the toast component since we can't use JSX in the hook
+  const { toast } = useToast();
+  
+  // Create a helper to render the button for the toast
+  const createSignUpButton = () => {
+    return (
+      <Button
+        onClick={() => window.location.href = "/register"}
+        variant="outline"
+        className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+      >
+        Sign Up
+      </Button>
+    );
+  };
+  
+  // Update the toast handler
+  useEffect(() => {
+    if (transcript) {
+      toast({
+        title: "Demo Complete!",
+        description: "Sign up to unlock unlimited and faster transcription.",
+        action: createSignUpButton()
+      });
+    }
+  }, [transcript]);
 
   return (
     <section className="py-20 px-4 bg-gray-50">
