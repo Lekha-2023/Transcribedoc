@@ -2,9 +2,9 @@
 import { Card } from "@/components/ui/card";
 import { Upload, Mic, FileText } from "lucide-react";
 
-// Remove individual images and use a section-wide image
+// Section-wide light background image for "How MediScribe Works"
 const sectionBgImage =
-  "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1200&q=80"; // Example healthcare image
+  "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=1200&q=80";
 
 const features = [
   {
@@ -36,16 +36,17 @@ const FeaturesSection = () => {
         backgroundPosition: "center",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
+        backgroundColor: "#F3F3F3", // light background fallback color
       }}
     >
       {/* Overlay for section readability */}
-      <div className="absolute inset-0 bg-medical-dark/70 pointer-events-none z-0" />
+      <div className="absolute inset-0 bg-white/70 pointer-events-none z-0" />
       <div className="container mx-auto max-w-6xl relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-medical-dark">
             How MediScribe Works
           </h2>
-          <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-medical-dark max-w-2xl mx-auto">
             Our streamlined process converts your medical audio files into accurate transcriptions with just a few clicks.
           </p>
         </div>
@@ -54,15 +55,16 @@ const FeaturesSection = () => {
           {features.map((f) => (
             <Card
               key={f.title}
-              className="flex flex-col items-center justify-center w-full max-w-[320px] h-[320px] bg-white/95 rounded-2xl shadow-lg border-none text-center"
+              className="flex flex-col items-center justify-center w-full max-w-[320px] h-[320px] bg-white rounded-2xl shadow-lg border border-border text-center"
+              style={{ boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)" }}
             >
-              <span className="mb-6 flex items-center justify-center bg-medical-blue/80 rounded-full p-5 shadow">
+              <span className="mb-6 flex items-center justify-center bg-medical-blue/80 rounded-full p-5 shadow-sm">
                 <f.icon className="h-12 w-12 text-white" />
               </span>
               <h3 className="text-xl md:text-2xl font-semibold text-medical-dark mb-2">
                 {f.title}
               </h3>
-              <p className="text-md md:text-lg text-gray-600 font-medium">
+              <p className="text-md md:text-lg text-gray-700 font-medium">
                 {f.description}
               </p>
             </Card>
@@ -74,3 +76,4 @@ const FeaturesSection = () => {
 };
 
 export default FeaturesSection;
+
