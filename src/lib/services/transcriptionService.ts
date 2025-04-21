@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const transcribeAudio = async (audioUrl: string) => {
@@ -35,7 +36,7 @@ export const transcribeAudio = async (audioUrl: string) => {
   }
 };
 
-// Updated demo transcription function with improved error handling and data sending
+// Updated demo transcription function that better handles file data
 export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: string }> => {
   try {
     console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
@@ -50,7 +51,7 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       throw new Error('File is too large. Maximum size is 15MB.');
     }
     
-    // Convert the file to base64 - this is the most reliable way to send audio data
+    // Convert the file to base64 - this is more reliable for sending audio data
     const base64Data = await fileToBase64(audioFile);
     console.log('File converted to base64, length:', base64Data.length);
     
@@ -58,7 +59,7 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       throw new Error('Failed to convert audio file to base64');
     }
     
-    console.log('Calling transcribe edge function with audio data...');
+    console.log('Sending base64 audio data to transcribe function...');
     
     // Call the edge function with the base64 data and file info
     const { data, error } = await supabase.functions.invoke('transcribe', {

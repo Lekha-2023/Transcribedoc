@@ -185,21 +185,3 @@ serve(async (req) => {
     );
   }
 });
-
-// Helper function to convert Blob to base64
-async function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        // Extract the base64 part (remove the data:audio/xxx;base64, prefix)
-        const base64String = reader.result.split(',')[1];
-        resolve(base64String);
-      } else {
-        reject(new Error('FileReader did not return a string'));
-      }
-    };
-    reader.onerror = () => reject(new Error('Error reading blob'));
-    reader.readAsDataURL(blob);
-  });
-}

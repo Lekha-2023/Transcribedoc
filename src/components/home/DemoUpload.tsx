@@ -69,7 +69,7 @@ const DemoUpload = () => {
     // Simulate upload progress
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
-        const newProgress = prev + Math.random() * 15;
+        const newProgress = prev + Math.random() * 10;
         return newProgress < 90 ? newProgress : prev;
       });
     }, 500);
@@ -77,7 +77,7 @@ const DemoUpload = () => {
     try {
       console.log("Starting demo transcription for file:", selectedFile.name, "type:", selectedFile.type);
 
-      // Use the demo transcription method - now configured to use base64
+      // Use the demo transcription method with base64 encoding
       const transcriptionResult = await transcribeDemoAudio(selectedFile);
       console.log("Transcription completed:", transcriptionResult);
 
