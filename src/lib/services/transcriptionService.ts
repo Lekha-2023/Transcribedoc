@@ -41,6 +41,11 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
   try {
     console.log('Starting demo transcription for file:', audioFile.name, 'type:', audioFile.type, 'size:', audioFile.size);
     
+    // Validate file type
+    if (!audioFile.type.startsWith('audio/')) {
+      throw new Error('Invalid file type. Please select an audio file.');
+    }
+    
     // Check if file is too large (over 15MB)
     if (audioFile.size > 15 * 1024 * 1024) {
       throw new Error('File is too large. Maximum size is 15MB.');
@@ -48,7 +53,7 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
     
     // Convert the file to base64 for direct transmission
     const base64Audio = await fileToBase64(audioFile);
-    console.log('File converted to base64, calling transcribe edge function...');
+    console.log('File converted to base64, length:', base64Audio.length, 'calling transcribe edge function...');
     
     // Call the edge function directly with the base64 data
     const { data, error } = await supabase.functions.invoke('transcribe', {
@@ -61,13 +66,17 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
     
     if (error) {
       console.error('Demo transcription error from edge function:', error);
-      throw new Error(`Edge Function error: ${error.message || error}`);
+      throw new Error(`Edge Function error: ${error.message || JSON.stringify(error)}`);
     }
     
     console.log('Demo transcription response:', data);
     
     if (!data) {
       throw new Error('No data returned from transcription service');
+    }
+    
+    if (data.error) {
+      throw new Error(`Service error: ${data.error}`);
     }
     
     if (!data.text) {

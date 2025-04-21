@@ -64,7 +64,7 @@ const DemoUpload = () => {
     try {
       console.log("Starting demo transcription for file:", selectedFile.name, "type:", selectedFile.type);
 
-      // Use the new demo transcription method that bypasses storage
+      // Use the demo transcription method that bypasses storage
       const transcriptionResult = await transcribeDemoAudio(selectedFile);
       console.log("Transcription completed:", transcriptionResult);
 
@@ -101,6 +101,7 @@ const DemoUpload = () => {
     } finally {
       clearInterval(progressInterval);
       setIsUploading(false);
+      setUploadProgress(0); // Reset progress on completion
     }
   };
 
