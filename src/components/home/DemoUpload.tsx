@@ -77,7 +77,7 @@ const DemoUpload = () => {
     try {
       console.log("Starting demo transcription for file:", selectedFile.name, "type:", selectedFile.type);
 
-      // Use the demo transcription method that bypasses storage
+      // Use the demo transcription method
       const transcriptionResult = await transcribeDemoAudio(selectedFile);
       console.log("Transcription completed:", transcriptionResult);
 

@@ -40,8 +40,9 @@ serve(async (req) => {
       }
     }
 
+    // For demo with direct audio data (base64)
     if (isDemo && audioBase64) {
-      console.log(`Processing demo transcription for file: ${fileName || 'unknown'}, size: ${
+      console.log(`Processing demo transcription with base64 data for file: ${fileName || 'unknown'}, size: ${
         audioBase64 ? (audioBase64.length * 0.75) / 1024 : 'unknown'
       } KB, type: ${fileType || 'unknown'}`);
       
@@ -81,9 +82,58 @@ serve(async (req) => {
         console.error('Error uploading audio to AssemblyAI:', uploadError);
         throw new Error(`Upload failed: ${uploadError.message || 'Unknown error during upload'}`);
       }
-    } else if (audioUrl) {
-      console.log(`Starting AssemblyAI transcription for: ${audioUrl}`);
-      transcriptionUrl = audioUrl;
+    } 
+    // For URLs (from storage or demo)
+    else if (audioUrl) {
+      console.log(`Starting AssemblyAI transcription for URL: ${audioUrl}`);
+      
+      // For blob URLs in demo mode, we need to fetch and upload the audio
+      if (isDemo && audioUrl.startsWith('blob:')) {
+        try {
+          console.log('Fetching audio from blob URL...');
+          const audioResponse = await fetch(audioUrl);
+          if (!audioResponse.ok) {
+            throw new Error(`Failed to fetch audio from blob URL: ${audioResponse.statusText}`);
+          }
+          
+          const audioBlob = await audioResponse.blob();
+          console.log('Converting blob to base64...');
+          
+          // Convert blob to base64
+          const base64 = await blobToBase64(audioBlob);
+          
+          // Ensure the file type is valid
+          const fileExt = fileName?.split('.').pop() || 'wav';
+          
+          // Upload to AssemblyAI
+          console.log('Uploading audio from blob to AssemblyAI...');
+          const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
+            method: 'POST',
+            headers: {
+              'Authorization': ASSEMBLY_AI_API_KEY,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              data_url: `data:audio/${fileExt};base64,${base64}`
+            }),
+          });
+          
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text();
+            throw new Error(`Failed to upload audio: ${errorText || uploadResponse.statusText}`);
+          }
+          
+          const uploadData = await uploadResponse.json();
+          transcriptionUrl = uploadData.upload_url;
+          console.log('Audio from blob uploaded to AssemblyAI, URL:', transcriptionUrl);
+        } catch (blobError) {
+          console.error('Error processing blob URL:', blobError);
+          throw new Error(`Failed to process blob URL: ${blobError.message}`);
+        }
+      } else {
+        // Direct URL to audio file (e.g. from storage)
+        transcriptionUrl = audioUrl;
+      }
     } else {
       console.error('Missing audioUrl or audioBase64 in request body');
       throw new Error('Audio data is required (URL or base64)');
@@ -181,4 +231,22 @@ serve(async (req) => {
       }
     );
   }
-})
+});
+
+// Helper function to convert Blob to base64
+async function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        // Extract the base64 part (remove the data:audio/xxx;base64, prefix)
+        const base64String = reader.result.split(',')[1];
+        resolve(base64String);
+      } else {
+        reject(new Error('FileReader did not return a string'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Error reading blob'));
+    reader.readAsDataURL(blob);
+  });
+}
