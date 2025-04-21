@@ -13,6 +13,7 @@ const DemoUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [transcript, setTranscript] = useState<string>("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const inputFileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -33,12 +34,14 @@ const DemoUpload = () => {
       }
       setSelectedFile(file);
       setTranscript("");
+      setUploadError(null);
     }
   };
 
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setTranscript("");
+    setUploadError(null);
   };
 
   const handleDemoClick = async () => {
@@ -46,6 +49,7 @@ const DemoUpload = () => {
 
     setIsUploading(true);
     setUploadProgress(0);
+    setUploadError(null);
 
     // Simulate upload progress
     const progressInterval = setInterval(() => {
@@ -58,12 +62,17 @@ const DemoUpload = () => {
     try {
       // Generate a temporary demo file ID, store under 'demo' user
       const demoFileId = `demo_${Date.now()}`;
+      console.log("Starting upload for file:", selectedFile.name, "type:", selectedFile.type);
 
       // Upload the file
       const publicUrl = await uploadToStorage(selectedFile, "demo", demoFileId);
-
+      console.log("File uploaded successfully, URL:", publicUrl);
+      
       // Call transcription
+      console.log("Starting transcription process...");
       const transcriptionResult = await transcribeAudio(publicUrl);
+      console.log("Transcription completed:", transcriptionResult);
+      
       setUploadProgress(100);
 
       if (transcriptionResult.text) {
@@ -82,9 +91,13 @@ const DemoUpload = () => {
             </Button>
           ),
         });
+      } else {
+        throw new Error("No transcription text returned");
       }
     } catch (error) {
       console.error("Demo transcription error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setUploadError(`Transcription failed: ${errorMessage}`);
       toast({
         title: "Error",
         description: "Failed to process the file. Please try again.",
@@ -181,9 +194,18 @@ const DemoUpload = () => {
               </div>
             )}
 
+            {/* Error message display */}
+            {uploadError && (
+              <div className="w-full max-w-md">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
+                  {uploadError}
+                </div>
+              </div>
+            )}
+
             {/* Result Section - always visible if transcript exists */}
             {transcript && (
-              <div className="w-full max-w-md mt-8">
+              <div className="w-full max-w-md mt-4">
                 <div className="border-t border-gray-200 pt-4">
                   <h3 className="text-lg font-semibold text-medical-dark mb-2 text-center">
                     Result

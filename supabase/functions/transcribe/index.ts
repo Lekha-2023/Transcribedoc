@@ -17,7 +17,21 @@ serve(async (req) => {
   }
 
   try {
-    const { audioUrl } = await req.json()
+    // Parse the request body
+    const reqBody = await req.json();
+    const { audioUrl } = reqBody;
+    
+    if (!audioUrl) {
+      console.error('Missing audioUrl in request body');
+      throw new Error('Audio URL is required');
+    }
+
+    console.log(`Starting AssemblyAI transcription for: ${audioUrl}`);
+    
+    if (!ASSEMBLY_AI_API_KEY) {
+      console.error('AssemblyAI API key is not configured');
+      throw new Error('AssemblyAI API key not found');
+    }
 
     // Start transcription
     const response = await fetch(`${ASSEMBLY_AI_API_URL}/transcript`, {
@@ -33,14 +47,23 @@ serve(async (req) => {
     })
 
     if (!response.ok) {
-      throw new Error(`AssemblyAI API error: ${response.statusText}`)
+      const errorText = await response.text();
+      console.error(`AssemblyAI API error: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`AssemblyAI API error: ${response.statusText}`);
     }
 
-    const transcription = await response.json()
+    const transcription = await response.json();
+    console.log('Transcription job created:', transcription.id);
 
     // Poll for transcription completion
-    let result
-    while (true) {
+    let result;
+    let attempts = 0;
+    const maxAttempts = 30; // Prevent infinite loops
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      console.log(`Polling for transcription result, attempt ${attempts}/${maxAttempts}`);
+      
       const pollResponse = await fetch(
         `${ASSEMBLY_AI_API_URL}/transcript/${transcription.id}`,
         {
@@ -50,29 +73,47 @@ serve(async (req) => {
         }
       )
 
-      result = await pollResponse.json()
+      if (!pollResponse.ok) {
+        const errorText = await pollResponse.text();
+        console.error(`Polling error: ${pollResponse.status} ${pollResponse.statusText}`, errorText);
+        throw new Error('Failed to poll for transcription status');
+      }
+
+      result = await pollResponse.json();
+      console.log('Current transcription status:', result.status);
 
       if (result.status === 'completed' || result.status === 'error') {
-        break
+        break;
       }
 
       // Wait before polling again
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    if (attempts >= maxAttempts) {
+      console.error('Transcription polling timeout');
+      throw new Error('Transcription timed out');
     }
 
     if (result.status === 'error') {
-      throw new Error('Transcription failed')
+      console.error('Transcription failed with status error:', result);
+      throw new Error('Transcription failed: ' + (result.error || 'Unknown error'));
     }
 
+    console.log('Transcription completed successfully');
+    
     return new Response(
       JSON.stringify({ text: result.text }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Transcription error:', error)
+    console.error('Transcription error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'An unknown error occurred',
+        stack: error.stack
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
