@@ -65,13 +65,17 @@ export function useDemoUpload() {
     }, 450);
 
     try {
+      console.log("Starting transcription for file:", selectedFile.name, "type:", selectedFile.type);
       const result = await transcribeDemoAudio(selectedFile);
       clearInterval(progressInterval);
       setUploadProgress(100);
 
       if (result.text) {
         setTranscript(result.text);
-        // We'll let the DemoUpload component handle the toast with JSX
+        toast({
+          title: "Demo Complete!",
+          description: "Sign up to unlock unlimited and faster transcription."
+        });
       } else {
         throw new Error("No transcription returned, possible file or service error.");
       }
@@ -81,6 +85,7 @@ export function useDemoUpload() {
       else if (error instanceof Error) errMsg = error.message;
       else errMsg = "Unknown error submitting file.";
       
+      console.error("Transcription error:", errMsg);
       setUploadError("Transcription failed: " + errMsg);
       toast({
         title: "Transcription Error",

@@ -32,13 +32,34 @@ export async function pollAssemblyAITranscript({
     result = await pollResponse.json();
     console.log(`${logPrefix} Current transcription status:`, result.status);
 
-    if (result.status === "completed" || result.status === "error") {
+    // Check for error status
+    if (result.status === "error") {
+      const errorDetails = result.error || "Unknown transcription error";
+      console.error(`${logPrefix} Transcription error:`, errorDetails);
+      throw new Error(`Transcription failed: ${errorDetails}`);
+    }
+
+    // Check for completion
+    if (result.status === "completed") {
+      console.log(`${logPrefix} Transcription completed successfully`);
       break;
     }
+
+    // Wait before polling again
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  if (attempts >= maxAttempts) throw new Error("Transcription timed out");
-  if (result.status === "error")
-    throw new Error("Transcription failed: " + (result.error || "Unknown error"));
+  
+  // Timeout check
+  if (attempts >= maxAttempts) {
+    console.error(`${logPrefix} Transcription timed out after ${maxAttempts} attempts`);
+    throw new Error("Transcription timed out");
+  }
+  
+  // Final error check
+  if (result.status !== "completed") {
+    console.error(`${logPrefix} Transcription failed with status: ${result.status}`);
+    throw new Error(`Transcription failed with status: ${result.status}`);
+  }
+  
   return result.text;
 }

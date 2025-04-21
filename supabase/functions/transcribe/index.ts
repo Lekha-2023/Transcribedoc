@@ -37,6 +37,15 @@ serve(async (req) => {
       throw new Error("AssemblyAI API key not found");
     }
 
+    // Validate input
+    if (!isDemo && !audioUrl) {
+      throw new Error("Audio URL is required for non-demo transcriptions");
+    }
+    
+    if (isDemo && !audioBase64) {
+      throw new Error("Audio base64 data is required for demo transcriptions");
+    }
+
     let transcriptionUrl: string;
 
     if (!isDemo) {
@@ -90,6 +99,7 @@ serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error(`${logPrefix} AssemblyAI API error:`, errorText || response.statusText);
         return new Response(
           JSON.stringify({
             error: `AssemblyAI API error: ${errorText || response.statusText}`,
@@ -113,13 +123,14 @@ serve(async (req) => {
         });
         console.log(
           `${logPrefix} Transcription completed successfully:`,
-          text.substring(0, 100) + "..."
+          text ? text.substring(0, 100) + "..." : "No text returned"
         );
         return new Response(
           JSON.stringify({ text }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       } catch (pollError: any) {
+        console.error(`${logPrefix} Error polling for transcription:`, pollError.message);
         return new Response(
           JSON.stringify({
             error: pollError.message || "Error polling transcription results",
@@ -131,6 +142,7 @@ serve(async (req) => {
         );
       }
     } catch (transcriptionError: any) {
+      console.error(`${logPrefix} Transcription process error:`, transcriptionError.message);
       return new Response(
         JSON.stringify({
           error:
@@ -144,6 +156,7 @@ serve(async (req) => {
       );
     }
   } catch (error: any) {
+    console.error(`[Transcribe Function] General error:`, error.message);
     return new Response(
       JSON.stringify({
         error: error.message || "An unknown error occurred",
