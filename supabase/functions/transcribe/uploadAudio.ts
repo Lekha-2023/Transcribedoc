@@ -34,6 +34,9 @@ export async function uploadAudioToAssemblyAI({
     try {
       console.log(`${logPrefix} Uploading audio to AssemblyAI...`);
 
+      // Create binary buffer from base64 string
+      const binaryData = Buffer.from(audioBase64, 'base64');
+      
       // Upload audio data to AssemblyAI
       const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
         method: "POST",
@@ -41,7 +44,7 @@ export async function uploadAudioToAssemblyAI({
           Authorization: ASSEMBLY_AI_API_KEY,
           "Content-Type": contentType,
         },
-        body: Buffer.from(audioBase64, 'base64'),
+        body: binaryData, // Send the binary buffer directly
       });
 
       if (!uploadResponse.ok) {

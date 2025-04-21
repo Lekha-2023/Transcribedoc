@@ -48,6 +48,7 @@ serve(async (req) => {
 
     let transcriptionUrl;
 
+    // Skip auth check for demo
     if (!isDemo) {
       const authHeader = req.headers.get("Authorization");
       if (!authHeader) {
