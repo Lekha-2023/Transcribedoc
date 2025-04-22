@@ -54,7 +54,7 @@ const DemoUpload = () => {
   return (
     <section
       id="demo-section"
-      className="py-20 px-4 bg-medical-dark relative"
+      className="py-20 px-4 relative"
       style={{
         backgroundImage: `url(${demoMainBg})`,
         backgroundPosition: "center",
@@ -62,8 +62,6 @@ const DemoUpload = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Dark overlay for better contrast */}
-      <div className="absolute inset-0 bg-medical-dark/90 pointer-events-none z-0" />
       <div className="container mx-auto max-w-4xl relative z-10">
         <div className="text-center mb-12">
           <p className="text-2xl md:text-3xl text-white font-semibold mb-6">
