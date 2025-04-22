@@ -58,7 +58,7 @@ const DemoUpload = () => {
       style={{
         backgroundImage: `url(${demoMainBg})`,
         backgroundPosition: "center",
-        backgroundSize: "cover",
+        backgroundSize: "300px 200px",
         backgroundRepeat: "no-repeat",
       }}
     >
