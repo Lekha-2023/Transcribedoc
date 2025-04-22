@@ -75,27 +75,17 @@ export function useDemoUpload() {
         setIsUploading(false);
         setUploadProgress(0);
         setTranscript("");
+        
+        // Create a toast that will redirect users to login or register
         toast({
           title: "Create an account to view results",
           description: "Sign up or log in to unlock unlimited and faster transcription.",
-          variant: "default",
-          action: (
-            <>
-              <button
-                onClick={() => { window.location.href = "/register"; }}
-                className="border border-medical-teal text-medical-teal hover:bg-medical-teal/10 px-3 py-1 rounded mr-2"
-              >
-                Sign Up
-              </button>
-              <button
-                onClick={() => { window.location.href = "/login"; }}
-                className="text-medical-blue border border-medical-blue hover:bg-medical-blue/10 px-3 py-1 rounded"
-              >
-                Login
-              </button>
-            </>
-          ),
+          action: {
+            label: "Sign Up",
+            onClick: () => window.location.href = "/register"
+          },
         });
+        
         return;
       }
 
