@@ -77,10 +77,10 @@ export function useDemoUpload() {
         setUploadProgress(0);
         setTranscript("");
         
-        // Create a toast that will redirect users to login or register
+        // Create a toast that will redirect users to signup (no login)
         toast({
           title: "Create an account to view results",
-          description: "Sign up or log in to unlock unlimited and faster transcription.",
+          description: "Sign up to unlock unlimited and faster transcription.",
           action: (
             <ToastAction altText="Sign Up" onClick={() => window.location.href = "/register"}>
               Sign Up

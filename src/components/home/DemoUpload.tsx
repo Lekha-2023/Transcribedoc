@@ -112,20 +112,13 @@ const DemoUpload = () => {
                 <p className="text-sm text-center text-gray-600 mb-3">
                   Create an account to view transcription results
                 </p>
-                <div className="flex justify-center space-x-3">
+                <div className="flex justify-center">
                   <Button 
                     onClick={handleSignUpClick}
                     variant="outline" 
                     className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
                   >
                     Sign Up
-                  </Button>
-                  <Button 
-                    onClick={handleLoginClick}
-                    variant="outline"
-                    className="border-medical-blue text-medical-blue hover:bg-medical-blue/10"
-                  >
-                    Login
                   </Button>
                 </div>
               </div>
