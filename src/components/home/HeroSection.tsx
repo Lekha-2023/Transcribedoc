@@ -1,16 +1,22 @@
 
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useEffect, useRef } from "react";
 
 interface HeroSectionProps {
   isLoggedIn: boolean;
 }
 
-// Use a provided healthcare-related image as a background, with styling overlay for clarity.
 const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
+  const demoSectionRef = useRef<HTMLDivElement>(null);
+
+  const scrollToDemo = () => {
+    const demoSection = document.querySelector('#demo-section');
+    demoSection?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section className="relative h-[85vh] flex items-center select-none">
-      {/* Stronger visual with provided healthcare image and gradient overlay */}
+      {/* Background image with overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
@@ -24,27 +30,35 @@ const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
         <div className="flex flex-col md:flex-row items-center justify-between w-full">
           <div className="md:w-7/12 lg:w-2/3 mt-10 md:mt-0 md:pr-12 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight drop-shadow-lg">
-              Convert Medical Audio to Text with{" "}
-              <span className="text-medical-teal bg-white/10 px-2 rounded">AI Power</span>
+              Transform Clinical Audio Into Accurate Medical Documentation
             </h1>
+            <h2 className="text-2xl md:text-3xl text-medical-teal mt-4 font-semibold">
+              Empowering Healthcare with AI-Driven Transcription
+            </h2>
             <p className="mt-6 text-lg text-gray-200 drop-shadow-md">
-              MediScribe transforms your healthcare audio recordings into accurate
-              text documents using advanced AI technology, saving time and improving documentation efficiency.
+              Trascribe Doc harnesses the power of advanced AI to convert medical dictations 
+              and patient encounter recordings into precise, HIPAA-compliant text. Designed 
+              for healthcare providers, our solution reduces documentation burden, enhances 
+              EHR accuracy, and lets you focus more on patient care.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
-              <Link to={isLoggedIn ? "/dashboard" : "/register"}>
-                <Button className="w-full sm:w-auto bg-medical-teal hover:bg-medical-teal/90 text-white px-8 py-6 text-lg drop-shadow-lg">
-                  {isLoggedIn ? "Go to Dashboard" : "Get Started"}
-                </Button>
-              </Link>
-              <Link to={isLoggedIn ? "/dashboard" : "/login"}>
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto border-medical-teal text-medical-teal hover:bg-medical-teal/10 px-8 py-6 text-lg"
-                >
-                  {isLoggedIn ? "View Transcriptions" : "Log In"}
-                </Button>
-              </Link>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-white">
+              <div className="bg-medical-teal/20 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="font-semibold mb-2">Trusted Medical-Grade Transcriptions</h3>
+              </div>
+              <div className="bg-medical-teal/20 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="font-semibold mb-2">Streamlined Clinical Workflows</h3>
+              </div>
+              <div className="bg-medical-teal/20 p-4 rounded-lg backdrop-blur-sm">
+                <h3 className="font-semibold mb-2">Secure, Compliant, and Efficient</h3>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-center md:justify-start">
+              <Button 
+                onClick={scrollToDemo}
+                className="bg-medical-teal hover:bg-medical-teal/90 text-white px-8 py-6 text-lg drop-shadow-lg"
+              >
+                Try Now
+              </Button>
             </div>
           </div>
         </div>
