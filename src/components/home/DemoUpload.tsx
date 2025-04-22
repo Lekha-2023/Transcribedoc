@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Upload } from "lucide-react";
 import DemoUploadFilePicker from "./DemoUploadFilePicker";
@@ -55,30 +54,26 @@ const DemoUpload = () => {
   return (
     <section
       id="demo-section"
-      className="py-20 px-4 bg-white relative"
+      className="py-20 px-4 bg-medical-dark relative"
       style={{
         backgroundImage: `url(${demoMainBg})`,
         backgroundPosition: "center",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
-        backgroundColor: "#F3F3F3", // light fallback color
       }}
     >
-      {/* Overlay for contrast */}
-      <div className="absolute inset-0 bg-white/80 pointer-events-none z-0" />
+      {/* Dark overlay for better contrast */}
+      <div className="absolute inset-0 bg-medical-dark/90 pointer-events-none z-0" />
       <div className="container mx-auto max-w-4xl relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-medical-dark mb-4">
-            Try It Now
-          </h2>
-          <p className="text-lg text-medical-dark mb-2">
+          <p className="text-2xl md:text-3xl text-white font-semibold mb-6">
             Experience the power of AI transcription with a demo upload.
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-300">
             Upload any MP3, WAV, OGG, or WEBM audio file (max 15MB).
           </p>
         </div>
-        <Card className="p-8 bg-white shadow-md relative z-10">
+        <Card className="p-8 bg-white/95 shadow-md relative z-10">
           <div className="flex flex-col items-center space-y-6">
             {/* Circular background main icon area */}
             <div
