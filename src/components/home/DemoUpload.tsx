@@ -78,7 +78,7 @@ const DemoUpload = () => {
               className="w-20 h-20 rounded-full flex items-center justify-center relative mb-4"
               style={{
                 //boxShadow: "0 2px 16px 0 rgba(30, 174, 219, 0.12)",
-                backgroundColor: "transparent",
+                //backgroundColor: "transparent",
               }}
             >
               {/* Overlay for icon area */}
