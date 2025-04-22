@@ -71,7 +71,7 @@ const DemoUpload = () => {
             Upload any MP3, WAV, OGG, or WEBM audio file (max 15MB).
           </p>
         </div>
-        <Card className="p-8 bg-black/95 shadow-md relative z-10">
+        <Card className="p-8 bg-transparent/95 shadow-md relative z-10">
           <div className="flex flex-col items-center space-y-6">
             {/* Circular background main icon area */}
             <div
