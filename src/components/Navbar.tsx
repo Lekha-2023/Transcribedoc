@@ -65,13 +65,13 @@ const Navbar = ({ isLoggedIn, onLogout }: NavbarProps) => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
           ? "bg-white/90 backdrop-blur-md shadow-sm py-2"
-          : "bg-transparent py-4"
+          : "bg-medical-dark/70 backdrop-blur-sm py-4"
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
           <Mic className="h-6 w-6 text-medical-teal" />
-          <span className="text-xl font-semibold text-medical-dark">MediScribe</span>
+          <span className="text-xl font-semibold text-white">TranscribeDoc</span>
         </Link>
 
         {/* Desktop Navigation */}
