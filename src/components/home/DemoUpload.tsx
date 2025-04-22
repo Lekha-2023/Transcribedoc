@@ -67,7 +67,7 @@ const DemoUpload = () => {
           <p className="text-2xl md:text-3xl text-black font-semibold mb-6">
             Experience the power of AI transcription with a demo upload.
           </p>
-          <p className="text-sm text-black-300">
+          <p className="text-sm text-gray-300">
             Upload any MP3, WAV, OGG, or WEBM audio file (max 15MB).
           </p>
         </div>
@@ -77,7 +77,7 @@ const DemoUpload = () => {
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center relative mb-4"
               style={{
-                boxShadow: "0 2px 16px 0 rgba(30, 174, 219, 0.12)",
+                //boxShadow: "0 2px 16px 0 rgba(30, 174, 219, 0.12)",
                 backgroundColor: "transparent",
               }}
             >
