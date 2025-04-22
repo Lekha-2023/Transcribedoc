@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Upload } from "lucide-react";
 import DemoUploadFilePicker from "./DemoUploadFilePicker";
@@ -83,7 +84,7 @@ const DemoUpload = () => {
             >
               {/* Overlay for icon area */}
               <div className="absolute inset-0 bg-medical-blue/80 rounded-full pointer-events-none"></div>
-              <Upload className="h-8 w-8 text-black z-10" />
+              <Upload className="h-8 w-8 text-white z-10" />
             </div>
             {!selectedFile ? (
               <DemoUploadFilePicker

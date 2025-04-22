@@ -63,6 +63,7 @@ export const transcribeDemoAudio = async (audioFile: File): Promise<{ text: stri
       throw new Error('No transcription text found in response');
     }
     
+    console.log('Transcription result received:', data.text);
     return data;
   } catch (error) {
     console.error('Demo transcription error:', error);

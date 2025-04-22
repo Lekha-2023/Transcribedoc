@@ -68,6 +68,8 @@ serve(async (req) => {
         ASSEMBLY_AI_API_URL,
         logPrefix,
       });
+      
+      console.log(`${logPrefix} Successfully got transcription URL: ${transcriptionUrl}`);
     } catch (uploadError) {
       console.error(`${logPrefix} Error uploading audio:`, uploadError);
       return new Response(
@@ -89,7 +91,7 @@ serve(async (req) => {
       const response = await fetch(`${ASSEMBLY_AI_API_URL}/transcript`, {
         method: "POST",
         headers: {
-          Authorization: ASSEMBLY_AI_API_KEY,
+          "Authorization": ASSEMBLY_AI_API_KEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

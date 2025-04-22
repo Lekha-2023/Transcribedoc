@@ -5,9 +5,9 @@ const DemoUploadResult: React.FC<{ transcript: string }> = ({ transcript }) => (
   <div className="w-full max-w-md mt-4">
     <div className="border-t border-gray-200 pt-4">
       <h3 className="text-lg font-semibold text-medical-dark mb-2 text-center">
-        Result
+        Transcription Result
       </h3>
-      <div className="p-4 bg-gray-50 rounded-md shadow-inner">
+      <div className="p-4 bg-gray-50 rounded-md shadow-inner max-h-[300px] overflow-y-auto">
         <p className="text-sm text-gray-700 whitespace-pre-wrap">{transcript}</p>
       </div>
     </div>

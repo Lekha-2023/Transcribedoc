@@ -55,6 +55,7 @@ export function useDemoUpload() {
     setIsUploading(true);
     setUploadProgress(0);
     setUploadError(null);
+    setTranscript("");
 
     // Simulate upload progress
     const progressInterval = setInterval(() => {
@@ -70,8 +71,9 @@ export function useDemoUpload() {
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (result.text) {
+      if (result && result.text) {
         setTranscript(result.text);
+        console.log("Transcription result received:", result.text.substring(0, 100) + "...");
         toast({
           title: "Demo Complete!",
           description: "Sign up to unlock unlimited and faster transcription."
