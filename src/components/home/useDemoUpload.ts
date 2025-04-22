@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { transcribeDemoAudio } from "@/lib/services/transcription";
 import { getFileTypeErrorMsg } from "./DemoUploadUtils";
 import { isAuthenticated } from "@/lib/auth"; // Import auth checker
+import { ToastAction } from "@/components/ui/toast";
 
 export function useDemoUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -80,10 +81,11 @@ export function useDemoUpload() {
         toast({
           title: "Create an account to view results",
           description: "Sign up or log in to unlock unlimited and faster transcription.",
-          action: {
-            label: "Sign Up",
-            onClick: () => window.location.href = "/register"
-          },
+          action: (
+            <ToastAction altText="Sign Up" onClick={() => window.location.href = "/register"}>
+              Sign Up
+            </ToastAction>
+          ),
         });
         
         return;

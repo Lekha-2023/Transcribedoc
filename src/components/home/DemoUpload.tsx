@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { isAuthenticated } from "@/lib/auth";
+import { ToastAction } from "@/components/ui/toast";
 
 // Changed background image to new user-provided healthcare illustration
 const demoMainBg =
@@ -45,10 +46,11 @@ const DemoUpload = () => {
       toast({
         title: "Demo Complete!",
         description: "Sign up to unlock unlimited and faster transcription.",
-        action: {
-          label: "Sign Up",
-          onClick: handleSignUpClick
-        }
+        action: (
+          <ToastAction altText="Sign Up" onClick={handleSignUpClick}>
+            Sign Up
+          </ToastAction>
+        )
       });
     }
   }, [transcript, isLoggedIn]);
