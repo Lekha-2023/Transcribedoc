@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Upload } from "lucide-react";
 import DemoUploadFilePicker from "./DemoUploadFilePicker";
@@ -53,6 +54,7 @@ const DemoUpload = () => {
 
   return (
     <section
+      id="demo-section"
       className="py-20 px-4 bg-white relative"
       style={{
         backgroundImage: `url(${demoMainBg})`,

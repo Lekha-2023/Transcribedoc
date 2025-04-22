@@ -7,8 +7,10 @@ interface HeroSectionProps {
 
 const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
   const scrollToDemo = () => {
-    const demoSection = document.querySelector('#demo-section');
-    demoSection?.scrollIntoView({ behavior: 'smooth' });
+    const demoSection = document.getElementById('demo-section');
+    if (demoSection) {
+      demoSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
