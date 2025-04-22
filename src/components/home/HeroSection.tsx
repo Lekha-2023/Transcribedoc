@@ -42,10 +42,10 @@ const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
           </p>
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-white justify-center">
             <div className="bg-medical-teal/20 p-4 rounded-lg backdrop-blur-sm">
-              <h3 className="font-semibold mb-2 text-center">Trusted Medical-Grade Transcriptions</h3>
+              <h3 className="font-semibold mb-2 text-center">Streamlined Clinical Workflows</h3>
             </div>
             <div className="bg-medical-teal/20 p-4 rounded-lg backdrop-blur-sm">
-              <h3 className="font-semibold mb-2 text-center">Streamlined Clinical Workflows</h3>
+              <h3 className="font-semibold mb-2 text-center">Trusted Medical-Grade Transcriptions</h3>
             </div>
             <div className="bg-medical-teal/20 p-4 rounded-lg backdrop-blur-sm">
               <h3 className="font-semibold mb-2 text-center">Secure, Compliant, and Efficient</h3>
