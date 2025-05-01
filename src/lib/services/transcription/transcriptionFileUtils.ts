@@ -1,50 +1,37 @@
 
-import { FileRecord } from "@/lib/types/file";
-
 /**
- * Converts a File object to a base64 string
+ * File reading/conversion helpers for transcription logic.
  */
-export const fileToBase64 = (file: File): Promise<string> => {
+
+// Helper function to read file as ArrayBuffer 
+export const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsDataURL(file);
     reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        // Remove the data URL prefix (e.g., "data:audio/mp3;base64,")
-        const base64String = reader.result.split(',')[1];
-        resolve(base64String);
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
       } else {
-        reject(new Error('Failed to convert file to base64'));
+        reject(new Error('Failed to read file as ArrayBuffer'));
       }
     };
-    reader.onerror = error => reject(error);
+    reader.onerror = (error) => reject(error);
+    reader.readAsArrayBuffer(file);
   });
 };
 
-export const downloadTranscription = async (file: FileRecord): Promise<void> => {
-  if (!file.transcriptText) {
-    throw new Error("No transcription available for this file");
+// Convert ArrayBuffer to base64 string (without data URL prefix)
+export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
+  return btoa(binary);
+};
 
-  // Create text blob for download
-  const blob = new Blob([file.transcriptText], { type: "text/plain" });
-  
-  // Create filename based on original filename
-  const originalName = file.originalFileName || "transcription";
-  const baseFilename = originalName.split('.').slice(0, -1).join('.') || originalName;
-  const filename = `${baseFilename}_transcription.txt`;
-  
-  // Create download link and trigger it
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  
-  // Clean up
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
+// Read file and convert to base64 in one step
+export const fileToBase64 = async (file: File): Promise<string> => {
+  const arrayBuffer = await readFileAsArrayBuffer(file);
+  return arrayBufferToBase64(arrayBuffer);
 };
