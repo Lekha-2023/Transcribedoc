@@ -1,4 +1,3 @@
-
 import { FileRecord } from "./types/file";
 import { getUserFiles, saveUserFiles } from "./storage/localStorageManager";
 import { uploadToStorage, deleteFromStorage } from "./storage/fileStorage";
@@ -106,6 +105,33 @@ export const uploadFile = async (
       message: errorMessage
     };
   }
+};
+
+// New function for bulk uploads
+export const uploadFiles = async (
+  files: File[],
+  userId: string
+): Promise<Array<{ success: boolean; fileId?: string; message?: string }>> => {
+  const results = [];
+  
+  for (const file of files) {
+    try {
+      const result = await uploadFile(file, userId);
+      results.push({
+        success: result.success,
+        fileId: result.fileRecord?.id,
+        message: result.message
+      });
+    } catch (error) {
+      console.error("Error uploading file:", file.name, error);
+      results.push({
+        success: false,
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+  
+  return results;
 };
 
 export const deleteFile = async (fileId: string, userId: string): Promise<boolean> => {
