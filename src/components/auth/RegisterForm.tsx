@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, User, Mail, Lock, Eye, EyeOff, Briefcase, Award } from "lucide-react";
 import { validateRegisterForm, RegisterErrors } from "@/utils/registerValidation";
 import ErrorMessage from "./ErrorMessage";
+import GoogleSignIn from "./GoogleSignIn";
 
 interface RegisterFormProps {
   onSubmit: (firstName: string, lastName: string, email: string, password: string, company: string, title: string) => Promise<void>;
@@ -230,6 +231,17 @@ const RegisterForm = ({ onSubmit, isLoading, errors }: RegisterFormProps) => {
           "Sign Up"
         )}
       </Button>
+      
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-gray-300" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-gray-500">Or continue with</span>
+        </div>
+      </div>
+      
+      <GoogleSignIn />
     </form>
   );
 };
