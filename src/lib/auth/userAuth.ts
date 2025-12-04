@@ -12,11 +12,14 @@ export const registerUser = async (name: string, email: string, password: string
   }
   
   try {
+    const redirectUrl = `${window.location.origin}/`;
+    
     // Register with Supabase
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectUrl,
         data: {
           name: name
         }
