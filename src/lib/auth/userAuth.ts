@@ -1,20 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User, AuthState } from './types';
-import { getUsers, saveUsers, saveAuthState, getInitialAuthState } from './storage';
+import { saveAuthState, getInitialAuthState } from './storage';
 
 // Register a new user
 export const registerUser = async (name: string, email: string, password: string): Promise<{ success: boolean; message: string }> => {
-  const users = getUsers();
-  
-  // Check if email already exists
-  if (users[email]) {
-    return { success: false, message: 'Email already registered' };
-  }
-  
   try {
     const redirectUrl = `${window.location.origin}/`;
     
-    // Register with Supabase
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -28,17 +20,19 @@ export const registerUser = async (name: string, email: string, password: string
     
     if (error) {
       console.error("Registration error:", error);
-      throw error;
+      return { 
+        success: false, 
+        message: error.message 
+      };
     }
     
-    // Create new user in local storage
-    users[email] = {
-      name,
-      email,
-      password
-    };
-    
-    saveUsers(users);
+    // Check if user already exists (Supabase returns user but no session)
+    if (data.user && !data.session) {
+      return { 
+        success: true, 
+        message: 'Check your email for the confirmation link.' 
+      };
+    }
     
     return { success: true, message: 'Registration successful' };
   } catch (error) {
@@ -53,9 +47,6 @@ export const registerUser = async (name: string, email: string, password: string
 // Login user
 export const loginUser = async (email: string, password: string): Promise<{ success: boolean; message: string; user?: User; token?: string }> => {
   try {
-    console.log("Attempting login with:", { email, password });
-    
-    // Log in with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -63,38 +54,22 @@ export const loginUser = async (email: string, password: string): Promise<{ succ
     
     if (error) {
       console.error("Login error:", error);
-      throw error;
-    }
-    
-    console.log("Supabase login response:", data);
-    
-    const users = getUsers();
-    
-    // Check if user exists in local storage
-    if (!users[email]) {
-      // Create user in local storage if not exists (might be created through Supabase directly)
-      users[email] = {
-        name: data.user?.user_metadata?.name || email.split('@')[0],
-        email,
-        password
+      return { 
+        success: false, 
+        message: error.message 
       };
-      saveUsers(users);
     }
-    
-    // Generate a token
-    const token = data.session?.access_token || `mock-jwt-token-${Date.now()}`;
     
     const user: User = {
-      id: data.user?.id || email,
-      name: users[email].name,
-      email
+      id: data.user.id,
+      name: data.user.user_metadata?.name || email.split('@')[0],
+      email: data.user.email || email
     };
     
-    // Save auth state
     const authState: AuthState = {
       isAuthenticated: true,
       user,
-      token
+      token: data.session?.access_token || null
     };
     
     saveAuthState(authState);
@@ -103,7 +78,7 @@ export const loginUser = async (email: string, password: string): Promise<{ succ
       success: true, 
       message: 'Login successful',
       user,
-      token
+      token: data.session?.access_token
     };
   } catch (error) {
     console.error("Login error:", error);
@@ -117,13 +92,11 @@ export const loginUser = async (email: string, password: string): Promise<{ succ
 // Logout user
 export const logoutUser = async (): Promise<void> => {
   try {
-    // Sign out from Supabase
     await supabase.auth.signOut();
   } catch (error) {
-    console.error("Supabase logout error:", error);
+    console.error("Logout error:", error);
   }
   
-  // Clear local auth state regardless of Supabase result
   const emptyState: AuthState = {
     isAuthenticated: false,
     user: null,
