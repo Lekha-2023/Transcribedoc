@@ -1,5 +1,4 @@
-
-import { useState, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Loader2 } from "lucide-react";
@@ -16,6 +15,7 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,23 +171,24 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
         </div>
         
         <div className="flex flex-wrap gap-3 justify-center">
-          <label className="cursor-pointer">
-            <Button 
-              variant="outline" 
-              className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
-              disabled={isUploading}
-            >
-              Browse Files
-            </Button>
-            <input 
-              type="file" 
-              multiple 
-              accept="audio/*" 
-              onChange={handleFileChange} 
-              className="hidden"
-              disabled={isUploading}
-            />
-          </label>
+          <Button 
+            variant="outline" 
+            className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+            disabled={isUploading}
+            onClick={() => fileInputRef.current?.click()}
+            type="button"
+          >
+            Browse Files
+          </Button>
+          <input 
+            ref={fileInputRef}
+            type="file" 
+            multiple 
+            accept="audio/*" 
+            onChange={handleFileChange} 
+            className="hidden"
+            disabled={isUploading}
+          />
           
           {selectedFiles.length > 0 && (
             <Button 
