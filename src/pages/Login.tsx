@@ -129,10 +129,10 @@ const Login = () => {
       <Navbar isLoggedIn={false} />
       
       <div className="flex-1 flex items-center justify-center px-4 py-24 wave-bg">
-        <Card className="w-full max-w-md p-8 bg-white shadow-xl">
+        <Card className="w-full max-w-md p-8 bg-card shadow-xl">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-medical-dark">Welcome Back</h1>
-            <p className="text-gray-500 mt-2">Sign in to your MediScribe account</p>
+            <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>
+            <p className="text-muted-foreground mt-2">Sign in to your TranscribeDoc account</p>
           </div>
           
           <LoginForm 
