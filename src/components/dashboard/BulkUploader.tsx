@@ -1,20 +1,30 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, FileText, Copy, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { uploadFiles } from "@/lib/fileUtils";
+import { uploadFile } from "@/lib/fileUtils";
 import { getFileTypeErrorMsg } from "@/components/home/DemoUploadUtils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BulkUploaderProps {
   userId: string;
   onFileUploaded: () => void;
 }
 
+interface TranscriptionResult {
+  fileName: string;
+  text: string;
+  success: boolean;
+  error?: string;
+}
+
 const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [transcriptionResults, setTranscriptionResults] = useState<TranscriptionResult[]>([]);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -43,9 +53,9 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
     
     if (newFiles.length > 0) {
       setSelectedFiles(prev => [...prev, ...newFiles]);
+      setTranscriptionResults([]); // Clear previous results when new files are added
     }
     
-    // Reset the input to allow selecting the same files again
     event.target.value = '';
   };
 
@@ -55,6 +65,17 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
 
   const handleClearAll = () => {
     setSelectedFiles([]);
+    setTranscriptionResults([]);
+  };
+
+  const handleCopyText = async (text: string, index: number) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+    toast({
+      title: "Copied!",
+      description: "Transcription copied to clipboard"
+    });
   };
 
   const handleTranscribe = async () => {
@@ -69,66 +90,72 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
 
     setIsUploading(true);
     setUploadProgress(0);
+    setTranscriptionResults([]);
 
-    // Simulate upload progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        const next = prev + (Math.random() * 5);
-        return next < 95 ? next : prev;
-      });
-    }, 300);
+    const results: TranscriptionResult[] = [];
+    const totalFiles = selectedFiles.length;
 
-    try {
-      const results = await uploadFiles(selectedFiles, userId);
-      
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-      
-      const successCount = results.filter(r => r.success).length;
-      
-      if (successCount > 0) {
-        toast({
-          title: "Files uploaded successfully",
-          description: `${successCount} of ${selectedFiles.length} files have been uploaded and queued for transcription.`
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      setUploadProgress(((i) / totalFiles) * 100);
+
+      try {
+        const result = await uploadFile(file, userId);
+        results.push({
+          fileName: file.name,
+          text: result.fileRecord?.transcriptText || "",
+          success: result.success,
+          error: result.message
         });
-        setSelectedFiles([]);
-        onFileUploaded();
-      } else {
-        toast({
-          title: "Upload failed",
-          description: "Failed to upload files. Please try again.",
-          variant: "destructive"
+      } catch (error) {
+        results.push({
+          fileName: file.name,
+          text: "",
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error"
         });
       }
-    } catch (error) {
-      console.error("Bulk upload error:", error);
+    }
+
+    setUploadProgress(100);
+    setTranscriptionResults(results);
+    
+    const successCount = results.filter(r => r.success).length;
+    
+    if (successCount > 0) {
       toast({
-        title: "Upload error",
-        description: error instanceof Error ? error.message : "Failed to upload files",
+        title: "Transcription complete",
+        description: `${successCount} of ${selectedFiles.length} files transcribed successfully.`
+      });
+      setSelectedFiles([]);
+      onFileUploaded();
+    } else {
+      toast({
+        title: "Transcription failed",
+        description: "Failed to transcribe files. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      clearInterval(progressInterval);
-      setIsUploading(false);
-      setUploadProgress(0);
     }
+
+    setIsUploading(false);
+    setUploadProgress(0);
   };
 
   const renderFileList = () => {
     if (selectedFiles.length === 0) {
       return (
-        <div className="text-center text-gray-500 p-4">
+        <div className="text-center text-muted-foreground p-4">
           No files selected yet
         </div>
       );
     }
 
     return (
-      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+      <div className="space-y-2 max-h-[200px] overflow-y-auto">
         {selectedFiles.map((file, index) => (
           <div 
             key={`${file.name}-${index}`} 
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
+            className="flex items-center justify-between p-3 bg-muted/50 rounded-md"
           >
             <div className="flex items-center space-x-3 truncate">
               <div className="w-8 h-8 bg-medical-teal/10 rounded-full flex items-center justify-center">
@@ -136,7 +163,7 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
               </div>
               <div className="truncate max-w-[200px]">
                 <p className="text-sm font-medium truncate">{file.name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
@@ -155,6 +182,53 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
     );
   };
 
+  const renderTranscriptionResults = () => {
+    if (transcriptionResults.length === 0) return null;
+
+    return (
+      <div className="mt-6 space-y-4">
+        <h4 className="text-lg font-semibold flex items-center gap-2">
+          <FileText className="h-5 w-5 text-medical-teal" />
+          Transcription Results
+        </h4>
+        <ScrollArea className="max-h-[400px]">
+          <div className="space-y-4 pr-4">
+            {transcriptionResults.map((result, index) => (
+              <Card key={index} className={`p-4 ${result.success ? 'border-green-200' : 'border-red-200'}`}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h5 className="font-medium text-sm truncate flex-1">{result.fileName}</h5>
+                  {result.success && result.text && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyText(result.text, index)}
+                      className="shrink-0"
+                    >
+                      {copiedIndex === index ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+                {result.success ? (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {result.text || "No transcription text available"}
+                  </p>
+                ) : (
+                  <p className="text-sm text-destructive">
+                    Error: {result.error || "Transcription failed"}
+                  </p>
+                )}
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  };
+
   return (
     <Card className="p-6">
       <div className="space-y-6">
@@ -164,7 +238,7 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
           </div>
           <div className="text-center">
             <h3 className="text-lg font-semibold">Upload Audio Files</h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               MP3, WAV, OGG, or WEBM format
             </p>
           </div>
@@ -213,7 +287,7 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
               {isUploading ? (
                 <div className="flex items-center">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  <span>Uploading... {Math.round(uploadProgress)}%</span>
+                  <span>Transcribing... {Math.round(uploadProgress)}%</span>
                 </div>
               ) : (
                 <span>Transcribe {selectedFiles.length} File{selectedFiles.length !== 1 ? 's' : ''}</span>
@@ -221,6 +295,8 @@ const BulkUploader = ({ userId, onFileUploaded }: BulkUploaderProps) => {
             </Button>
           </div>
         )}
+
+        {renderTranscriptionResults()}
       </div>
     </Card>
   );
