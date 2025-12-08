@@ -1,5 +1,10 @@
-
-project_id = "ostaldphsoiputdakucu"
+project_id = "btfdkfpmgqzezgyunpek"
 
 [functions.send-contact-confirmation]
+verify_jwt = false
+
+[functions.transcribe]
+verify_jwt = false
+
+[functions.create-checkout]
 verify_jwt = false
