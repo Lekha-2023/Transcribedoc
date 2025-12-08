@@ -34,8 +34,12 @@ export async function uploadAudioToAssemblyAI({
     try {
       console.log(`${logPrefix} Uploading audio to AssemblyAI...`);
 
-      // Create binary buffer from base64 string
-      const binaryData = Buffer.from(audioBase64, 'base64');
+      // Decode base64 to binary using Deno-compatible method
+      const binaryString = atob(audioBase64);
+      const binaryData = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        binaryData[i] = binaryString.charCodeAt(i);
+      }
       
       // Upload audio data to AssemblyAI
       const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
@@ -44,7 +48,7 @@ export async function uploadAudioToAssemblyAI({
           Authorization: ASSEMBLY_AI_API_KEY,
           "Content-Type": contentType,
         },
-        body: binaryData, // Send the binary buffer directly
+        body: binaryData, // Send the binary Uint8Array directly
       });
 
       if (!uploadResponse.ok) {
