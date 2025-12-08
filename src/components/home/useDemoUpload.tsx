@@ -3,8 +3,6 @@ import { useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { transcribeDemoAudio } from "@/lib/services/transcription";
 import { getFileTypeErrorMsg } from "./DemoUploadUtils";
-import { isAuthenticated } from "@/lib/auth"; // Import auth checker
-import { ToastAction } from "@/components/ui/toast";
 
 export function useDemoUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -68,28 +66,6 @@ export function useDemoUpload() {
     }, 450);
 
     try {
-      // NEW: Check auth status and short-circuit if not logged in
-      const loggedIn = isAuthenticated && isAuthenticated();
-
-      if (!loggedIn) {
-        clearInterval(progressInterval);
-        setIsUploading(false);
-        setUploadProgress(0);
-        setTranscript("");
-        
-        // Create a toast that will redirect users to signup (no login)
-        toast({
-          title: "Create an account to view results",
-          description: "Sign up to unlock unlimited and faster transcription.",
-          action: (
-            <ToastAction altText="Sign Up" onClick={() => window.location.href = "/register"}>
-              Sign Up
-            </ToastAction>
-          ),
-        });
-        
-        return;
-      }
 
       console.log("Starting transcription for file:", selectedFile.name, "type:", selectedFile.type);
       const result = await transcribeDemoAudio(selectedFile);
