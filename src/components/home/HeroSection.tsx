@@ -1,11 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { useEffect, useRef } from "react";
 
-interface HeroSectionProps {
-  isLoggedIn: boolean;
-}
-
-const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
+const HeroSection = () => {
   const scrollToDemo = () => {
     const demoSection = document.getElementById('demo-section');
     if (demoSection) {

@@ -73,7 +73,7 @@ const Subscription = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar isLoggedIn={true} />
+      <Navbar />
       
       <div className="flex-1 pt-20 pb-16 px-4 bg-gray-50">
         <div className="container mx-auto max-w-6xl">
