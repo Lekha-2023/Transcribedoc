@@ -111,7 +111,7 @@ serve(async (req) => {
       console.error(`${logPrefix} Error uploading audio:`, uploadError);
       return new Response(
         JSON.stringify({
-          error: `Upload failed: ${uploadError.message || "Unknown upload error"}`,
+          error: "Audio upload failed. Please try again with a valid audio file.",
         }),
         {
           status: 400,
@@ -139,10 +139,10 @@ serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`${logPrefix} AssemblyAI API error:`, errorText || response.statusText);
+        console.error(`${logPrefix} Transcription API error:`, errorText || response.statusText);
         return new Response(
           JSON.stringify({
-            error: `AssemblyAI API error: ${errorText || response.statusText}`,
+            error: "Transcription service error. Please try again later.",
           }),
           {
             status: 400,
@@ -173,7 +173,7 @@ serve(async (req) => {
         console.error(`${logPrefix} Error polling for transcription:`, pollError.message);
         return new Response(
           JSON.stringify({
-            error: pollError.message || "Error polling transcription results",
+            error: "Transcription processing failed. Please try again.",
           }),
           {
             status: 400,
@@ -185,9 +185,7 @@ serve(async (req) => {
       console.error(`${logPrefix} Transcription process error:`, transcriptionError.message);
       return new Response(
         JSON.stringify({
-          error:
-            transcriptionError.message ||
-            "Transcription process error: Unknown transcription error",
+          error: "Transcription failed. Please try again later.",
         }),
         {
           status: 500,
@@ -199,7 +197,7 @@ serve(async (req) => {
     console.error(`[Transcribe Function] General error:`, error.message);
     return new Response(
       JSON.stringify({
-        error: error.message || "An unknown error occurred",
+        error: "An unexpected error occurred. Please try again.",
       }),
       {
         status: 500,

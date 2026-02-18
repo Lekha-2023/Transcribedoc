@@ -1,16 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { getUsers } from './storage';
 
 // Send password reset email
 export const resetPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
   try {
-    // Check if the email exists
-    const users = getUsers();
-    if (!users[email]) {
-      return { success: false, message: 'Email not found' };
-    }
-    
     // Get the current origin (domain)
     const origin = window.location.origin;
     
