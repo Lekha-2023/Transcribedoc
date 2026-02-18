@@ -29,13 +29,25 @@ export async function uploadAudioToAssemblyAI({
     if (!audioBase64 || audioBase64.trim().length === 0) {
       throw new Error("Audio data is empty or invalid");
     }
+
+    // Server-side size validation: ~20MB base64 ≈ 15MB file
+    const MAX_BASE64_LENGTH = 20 * 1024 * 1024;
+    if (audioBase64.length > MAX_BASE64_LENGTH) {
+      throw new Error("Audio file is too large. Maximum size is 15MB.");
+    }
+
     console.log(`${logPrefix} Using file extension: ${ext}`);
 
     try {
       console.log(`${logPrefix} Uploading audio to AssemblyAI...`);
 
       // Decode base64 to binary using Deno-compatible method
-      const binaryString = atob(audioBase64);
+      let binaryString: string;
+      try {
+        binaryString = atob(audioBase64);
+      } catch {
+        throw new Error("Invalid audio data encoding");
+      }
       const binaryData = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         binaryData[i] = binaryString.charCodeAt(i);

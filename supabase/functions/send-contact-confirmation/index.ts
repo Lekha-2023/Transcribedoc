@@ -157,7 +157,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || "Failed to process email request" 
+        error: "Failed to process email request. Please try again later." 
       }),
       { 
         status: 400,
