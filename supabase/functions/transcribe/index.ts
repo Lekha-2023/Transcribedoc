@@ -16,6 +16,30 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Simple in-memory rate limiter for demo requests
+const demoRateLimit = new Map<string, { count: number; resetAt: number }>();
+const DEMO_RATE_LIMIT = 5; // max requests per window
+const DEMO_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function isDemoRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = demoRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    demoRateLimit.set(ip, { count: 1, resetAt: now + DEMO_RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > DEMO_RATE_LIMIT;
+}
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of demoRateLimit) {
+    if (now > entry.resetAt) demoRateLimit.delete(ip);
+  }
+}, 10 * 60 * 1000);
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -46,9 +70,22 @@ serve(async (req) => {
       throw new Error("Audio base64 data is required for demo transcriptions");
     }
 
+    // Rate limit demo requests
+    if (isDemo) {
+      const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                        req.headers.get("cf-connecting-ip") || "unknown";
+      if (isDemoRateLimited(clientIp)) {
+        console.warn(`${logPrefix} Rate limited demo request from IP: ${clientIp}`);
+        return new Response(
+          JSON.stringify({ error: "Demo rate limit exceeded. Please try again later." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     let transcriptionUrl;
 
-    // Skip auth check for demo
+    // Validate auth for non-demo requests
     if (!isDemo) {
       const authHeader = req.headers.get("Authorization");
       if (!authHeader) {
