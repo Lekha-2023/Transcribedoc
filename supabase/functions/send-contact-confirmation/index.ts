@@ -29,12 +29,67 @@ serve(async (req) => {
   }
 
   try {
-    const { name, email, subject, message, transcription }: EmailRequest = await req.json();
+    const body: EmailRequest = await req.json();
 
-    // Validate required fields
-    if (!name || !email) {
-      throw new Error("Name and email are required");
+    // Server-side input validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const sanitizeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    const stripHeaderInjection = (s: string) => s.replace(/[\r\n]+/g, " ").trim();
+
+    if (!body || typeof body !== "object") {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid request" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
+
+    const rawName = typeof body.name === "string" ? body.name.trim() : "";
+    const rawEmail = typeof body.email === "string" ? body.email.trim() : "";
+    const rawSubject = typeof body.subject === "string" ? body.subject.trim() : "";
+    const rawMessage = typeof body.message === "string" ? body.message.trim() : "";
+    const rawTranscription = typeof body.transcription === "string" ? body.transcription : "";
+
+    if (!rawName || rawName.length > 100) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid name" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (!rawEmail || rawEmail.length > 255 || !emailRegex.test(rawEmail)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid email" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (rawSubject.length > 200) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Subject too long" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (rawMessage.length > 5000) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Message too long" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (rawTranscription.length > 100000) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Transcription too long" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const name = sanitizeHtml(stripHeaderInjection(rawName));
+    const email = stripHeaderInjection(rawEmail);
+    const subject = sanitizeHtml(stripHeaderInjection(rawSubject));
+    const message = sanitizeHtml(rawMessage);
+    const transcription = rawTranscription ? sanitizeHtml(rawTranscription) : "";
 
     // Determine if this is a contact form submission or a transcription email
     const isTranscription = !!transcription;
