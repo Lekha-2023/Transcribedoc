@@ -22,7 +22,6 @@ const Contact = () => {
           </div>
 
           <ContactForm />
-          <ContactInfo />
         </div>
       </div>
 
