@@ -38,7 +38,7 @@ const FeaturesSection = () => {
       <div className="container mx-auto max-w-6xl relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-medical-dark">
-            How MediScribe Works
+            How TranscribeDoc Works
           </h2>
           <p className="mt-4 text-lg text-medical-dark max-w-2xl mx-auto">
             Our streamlined process converts your medical audio files into accurate transcriptions with just a few clicks.
