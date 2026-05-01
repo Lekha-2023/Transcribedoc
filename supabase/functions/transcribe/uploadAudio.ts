@@ -73,10 +73,61 @@ export async function uploadAudioToAssemblyAI({
       throw new Error(uploadError.message || "Unknown error during upload");
     }
   }
-  // For URLs (from storage)
+  // For URLs (from storage) - download via service role and upload bytes to AssemblyAI
   else if (audioUrl) {
-    console.log(`${logPrefix} Using provided audio URL: ${audioUrl}`);
-    transcriptionUrl = audioUrl;
+    console.log(`${logPrefix} Fetching audio from storage URL: ${audioUrl}`);
+
+    // Parse bucket + path from the URL (supports both /public/ and /sign/ style)
+    const match = audioUrl.match(/\/storage\/v1\/object\/(?:public\/|sign\/)?([^/]+)\/(.+?)(?:\?|$)/);
+    if (!match) {
+      throw new Error(`Could not parse storage URL: ${audioUrl}`);
+    }
+    const bucket = match[1];
+    const objectPath = decodeURIComponent(match[2]);
+
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!SUPABASE_URL || !SERVICE_ROLE) {
+      throw new Error("Supabase service credentials not configured");
+    }
+
+    const downloadUrl = `${SUPABASE_URL}/storage/v1/object/${bucket}/${objectPath}`;
+    const fileResp = await fetch(downloadUrl, {
+      headers: {
+        apikey: SERVICE_ROLE,
+        Authorization: `Bearer ${SERVICE_ROLE}`,
+      },
+    });
+
+    if (!fileResp.ok) {
+      const errText = await fileResp.text();
+      throw new Error(`Failed to download file from storage (${fileResp.status}): ${errText}`);
+    }
+
+    const audioBytes = new Uint8Array(await fileResp.arrayBuffer());
+    const contentType = fileResp.headers.get("content-type") || "application/octet-stream";
+
+    console.log(`${logPrefix} Uploading ${audioBytes.length} bytes to AssemblyAI (type: ${contentType})`);
+
+    const uploadResponse = await fetch(`${ASSEMBLY_AI_API_URL}/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: ASSEMBLY_AI_API_KEY,
+        "Content-Type": "application/octet-stream",
+      },
+      body: audioBytes,
+    });
+
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      throw new Error(`Failed to upload audio to AssemblyAI: ${errorText || uploadResponse.statusText}`);
+    }
+
+    const uploadData = await uploadResponse.json();
+    transcriptionUrl = uploadData.upload_url;
+    if (!transcriptionUrl) {
+      throw new Error("Failed to get upload URL from AssemblyAI");
+    }
   } else {
     throw new Error("Audio data is required (URL or base64)");
   }
