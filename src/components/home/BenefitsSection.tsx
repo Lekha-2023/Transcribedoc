@@ -63,7 +63,7 @@ const BenefitsSection = () => {
     <section className="py-20 px-4 bg-medical-gray min-h-[70vh]">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-medical-dark">Why Choose MediScribe</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-medical-dark">Why Choose TranscirbeDoc</h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
             Designed specifically for healthcare professionals to improve documentation workflow.
           </p>
