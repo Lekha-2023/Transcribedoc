@@ -106,7 +106,7 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        error: "Payment processing error. Please try again later." 
+        error: error instanceof Error ? error.message : "An unexpected error occurred" 
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

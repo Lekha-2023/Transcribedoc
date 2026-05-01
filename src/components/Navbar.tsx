@@ -1,10 +1,21 @@
-import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { Mic, Menu, X } from "lucide-react";
 
-const Navbar = () => {
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Mic, FileText, LogOut, Menu, X } from "lucide-react";
+import { logoutUser } from "@/lib/auth";
+import { useToast } from "@/components/ui/use-toast";
+
+interface NavbarProps {
+  isLoggedIn: boolean;
+  onLogout?: () => void;
+}
+
+const Navbar = ({ isLoggedIn, onLogout }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,6 +28,36 @@ const Navbar = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+      
+      // Close mobile menu if open
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+      
+      // Call the onLogout prop if provided
+      if (onLogout) {
+        onLogout();
+      }
+      
+      // Redirect to homepage
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging you out. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -41,18 +82,47 @@ const Navbar = () => {
           >
             Home
           </Link>
-          <Link
-            to="/dashboard"
-            className="text-medical-dark hover:text-medical-teal transition-colors"
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/contact"
-            className="text-medical-dark hover:text-medical-teal transition-colors"
-          >
-            Contact Us
-          </Link>
+          
+          {isLoggedIn ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="text-medical-dark hover:text-medical-teal transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/contact"
+                className="text-medical-dark hover:text-medical-teal transition-colors"
+              >
+                Contact Us
+              </Link>
+              <Button onClick={handleLogout} variant="ghost" className="flex items-center space-x-1">
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/contact"
+                className="text-medical-dark hover:text-medical-teal transition-colors"
+              >
+                Contact Us
+              </Link>
+              <Link
+                to="/login"
+                className="text-medical-dark hover:text-medical-teal transition-colors"
+              >
+                Login
+              </Link>
+              <Link to="/register">
+                <Button className="bg-medical-teal hover:bg-medical-teal/90 text-white">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -75,20 +145,58 @@ const Navbar = () => {
             >
               Home
             </Link>
-            <Link
-              to="/dashboard"
-              className="text-medical-dark hover:text-medical-teal transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/contact"
-              className="text-medical-dark hover:text-medical-teal transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Contact Us
-            </Link>
+            
+            {isLoggedIn ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="text-medical-dark hover:text-medical-teal transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/contact"
+                  className="text-medical-dark hover:text-medical-teal transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Contact Us
+                </Link>
+                <Button 
+                  onClick={handleLogout} 
+                  variant="ghost" 
+                  className="flex items-center justify-start space-x-1 py-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/contact"
+                  className="text-medical-dark hover:text-medical-teal transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Contact Us
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-medical-dark hover:text-medical-teal transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Button className="bg-medical-teal hover:bg-medical-teal/90 text-white w-full">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

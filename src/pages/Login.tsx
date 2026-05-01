@@ -126,7 +126,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar isLoggedIn={false} />
       
       <div className="flex-1 flex items-center justify-center px-4 py-24 wave-bg">
         <Card className="w-full max-w-md p-8 bg-card shadow-xl">

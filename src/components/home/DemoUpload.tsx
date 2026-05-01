@@ -5,6 +5,11 @@ import DemoUploadFilePreview from "./DemoUploadFilePreview";
 import DemoUploadResult from "./DemoUploadResult";
 import DemoUploadError from "./DemoUploadError";
 import { useDemoUpload } from "./useDemoUpload";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { isAuthenticated } from "@/lib/auth";
+import { ToastAction } from "@/components/ui/toast";
 
 // Changed background image to new user-provided healthcare illustration
 const demoMainBg =
@@ -23,6 +28,31 @@ const DemoUpload = () => {
     handleRemoveFile,
     handleDemoClick,
   } = useDemoUpload();
+
+  const { toast } = useToast();
+  const isLoggedIn = isAuthenticated && isAuthenticated();
+
+  const handleSignUpClick = () => {
+    window.location.href = "/register";
+  };
+
+  const handleLoginClick = () => {
+    window.location.href = "/login";
+  };
+
+  useEffect(() => {
+    if (transcript && isLoggedIn) {
+      toast({
+        title: "Demo Complete!",
+        description: "Sign up to unlock unlimited and faster transcription.",
+        action: (
+          <ToastAction altText="Sign Up" onClick={handleSignUpClick}>
+            Sign Up
+          </ToastAction>
+        )
+      });
+    }
+  }, [transcript, isLoggedIn]);
 
   return (
     <section
@@ -74,7 +104,25 @@ const DemoUpload = () => {
               />
             )}
             {uploadError && <DemoUploadError error={uploadError} />}
-            {transcript && <DemoUploadResult transcript={transcript} />}
+            {transcript && isLoggedIn && <DemoUploadResult transcript={transcript} />}
+            
+            {/* Show auth options if not logged in */}
+            {(!isLoggedIn && selectedFile && !isUploading) && (
+              <div className="w-full max-w-md mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-sm text-center text-gray-600 mb-3">
+                  Create an account to view transcription results
+                </p>
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={handleSignUpClick}
+                    variant="outline" 
+                    className="border-medical-teal text-medical-teal hover:bg-medical-teal/10"
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
       </div>

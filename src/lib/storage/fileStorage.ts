@@ -37,18 +37,11 @@ export const uploadToStorage = async (file: File, userId: string, fileId: string
 
     console.log('Upload successful:', uploadData);
 
-    // Use signed URL since the bucket is private
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+    const { data: { publicUrl } } = supabase.storage
       .from('audio-files')
-      .createSignedUrl(filePath, 3600); // 1 hour expiration
+      .getPublicUrl(filePath);
 
-    if (signedUrlError || !signedUrlData?.signedUrl) {
-      console.error('Error creating signed URL:', signedUrlError);
-      throw new Error('Failed to create signed URL for the uploaded file');
-    }
-
-    console.log('Signed URL created successfully');
-    return signedUrlData.signedUrl;
+    return publicUrl;
   } catch (error) {
     console.error('Upload to storage failed:', error);
     throw error;

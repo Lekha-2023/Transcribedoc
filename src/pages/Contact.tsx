@@ -1,11 +1,17 @@
+
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ContactForm } from "@/components/contact/ContactForm";
+import { ContactInfo } from "@/components/contact/ContactInfo";
+import { isAuthenticated } from "@/lib/auth";
 
 const Contact = () => {
+  const isLoggedIn = isAuthenticated();
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar isLoggedIn={isLoggedIn} />
 
       <div className="flex-1 pt-24 pb-12 px-4">
         <div className="container mx-auto max-w-4xl">
@@ -17,6 +23,7 @@ const Contact = () => {
           </div>
 
           <ContactForm />
+          <ContactInfo />
         </div>
       </div>
 
