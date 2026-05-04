@@ -69,7 +69,6 @@ export const loginUser = async (email: string, password: string): Promise<{ succ
     const authState: AuthState = {
       isAuthenticated: true,
       user,
-      token: data.session?.access_token || null
     };
     
     saveAuthState(authState);
