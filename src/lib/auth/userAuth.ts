@@ -99,7 +99,6 @@ export const logoutUser = async (): Promise<void> => {
   const emptyState: AuthState = {
     isAuthenticated: false,
     user: null,
-    token: null
   };
   
   saveAuthState(emptyState);
@@ -108,7 +107,7 @@ export const logoutUser = async (): Promise<void> => {
 // Check if user is authenticated
 export const isAuthenticated = (): boolean => {
   const authState = getInitialAuthState();
-  return authState.isAuthenticated && !!authState.token;
+  return authState.isAuthenticated && !!authState.user;
 };
 
 // Get current user
