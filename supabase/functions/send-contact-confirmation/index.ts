@@ -30,12 +30,34 @@ serve(async (req) => {
     }
     const resend = new Resend(apiKey);
 
-    const { name, email, subject, message, transcription }: EmailRequest =
-      await req.json();
+    const body: EmailRequest = await req.json();
 
-    if (!name || !email) {
+    if (!body.name || !body.email) {
       throw new Error("Name and email are required");
     }
+
+    // Basic email format validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email) || body.email.length > 255) {
+      throw new Error("Invalid email address");
+    }
+
+    // HTML escape helper to prevent injection in outgoing emails
+    const esc = (s: string) =>
+      String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    // Enforce server-side length limits, then escape
+    const name = esc((body.name || "").slice(0, 100));
+    const email = body.email.slice(0, 255);
+    const subject = esc((body.subject || "").slice(0, 200));
+    const message = body.message ? esc(body.message.slice(0, 5000)) : undefined;
+    const transcription = body.transcription
+      ? esc(body.transcription.slice(0, 100000))
+      : undefined;
 
     const isTranscription = !!transcription;
     console.log(
