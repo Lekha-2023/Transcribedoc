@@ -48,11 +48,43 @@ serve(async (req) => {
 
     let transcriptionUrl;
 
-    // Skip auth check for demo
+    // Validate auth for non-demo path
     if (!isDemo) {
       const authHeader = req.headers.get("Authorization");
-      if (!authHeader) {
-        throw new Error("User is not authenticated");
+      const token = authHeader?.replace("Bearer ", "");
+      if (!token) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+      const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userResp = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+      });
+      if (!userResp.ok) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const userData = await userResp.json();
+      const authedUserId = userData?.id;
+      if (!authedUserId) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Ensure the audioUrl path belongs to the authenticated user
+      const pathMatch = audioUrl?.match(/\/storage\/v1\/object\/(?:public\/|sign\/)?[^/]+\/([^/]+)\//);
+      const folderUserId = pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+      if (!folderUserId || folderUserId !== authedUserId) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden: file does not belong to user" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
 
