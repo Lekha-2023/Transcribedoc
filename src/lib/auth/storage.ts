@@ -25,7 +25,6 @@ export const getInitialAuthState = (): AuthState => {
   return {
     isAuthenticated: false,
     user: null,
-    token: null
   };
 };
 
