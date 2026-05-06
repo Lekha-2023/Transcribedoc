@@ -60,42 +60,38 @@ const benefitData = [
 
 const BenefitsSection = () => {
   return (
-    <section className="py-20 px-4 bg-medical-gray min-h-[70vh]">
+    <section className="py-12 px-4 bg-medical-gray">
       <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-medical-dark">Why Choose TranscirbeDoc</h2>
-          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-medical-dark">Why Choose TranscribeDoc</h2>
+          <p className="mt-3 text-base text-gray-600 max-w-2xl mx-auto">
             Designed specifically for healthcare professionals to improve documentation workflow.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 justify-items-center">
-          {benefitData.map((benefit, idx) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+          {benefitData.map((benefit) => (
             <div
               key={benefit.title}
-              className="relative flex flex-col items-center justify-center shadow-lg card-hover"
+              className="relative flex flex-col items-center justify-center card-hover"
               style={{
-                width: '320px',
-                height: '320px',
-                minWidth: '220px',
-                minHeight: '220px',
+                width: '230px',
+                height: '230px',
                 borderRadius: '50%',
                 backgroundImage: `url(${benefitImages[benefit.imgIdx].src})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                boxShadow: '0 6px 30px 0 rgba(30, 174, 219, 0.10)',
+                boxShadow: '0 4px 16px 0 rgba(30, 174, 219, 0.10)',
                 overflow: 'hidden',
               }}
             >
-              {/* Color/dark overlay for content readability */}
-              <div className="absolute inset-0 bg-gradient-to-b from-medical-dark/70 via-medical-dark/45 to-medical-blue/20 rounded-full pointer-events-none"></div>
-              <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-                <span className="mb-5 flex items-center justify-center bg-medical-blue/80 rounded-full p-4 border-4 border-white shadow-lg">
-                  <benefit.icon className="h-10 w-10 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-b from-medical-dark/45 via-medical-dark/30 to-medical-blue/10 rounded-full pointer-events-none"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
+                <span className="mb-3 flex items-center justify-center bg-medical-blue/80 rounded-full p-2.5 border-2 border-white shadow">
+                  <benefit.icon className="h-6 w-6 text-white" />
                 </span>
-                <h3 className="text-xl md:text-2xl font-semibold text-white drop-shadow mb-2">{benefit.title}</h3>
-                <p className="text-md md:text-lg text-blue-50 drop-shadow-lg font-medium">{benefit.description}</p>
+                <h3 className="text-base font-semibold text-white drop-shadow mb-1">{benefit.title}</h3>
+                <p className="text-xs text-blue-50 drop-shadow font-medium leading-snug">{benefit.description}</p>
               </div>
-              {/* For accessibility, visually hidden alt text */}
               <span className="sr-only">{benefitImages[benefit.imgIdx].alt}</span>
             </div>
           ))}
