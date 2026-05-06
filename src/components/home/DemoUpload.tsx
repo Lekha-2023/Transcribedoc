@@ -66,15 +66,15 @@ const DemoUpload = () => {
       }}
     >
       <div className="container mx-auto max-w-4xl relative z-10">
-        <div className="text-center mb-12">
-          <p className="text-2xl md:text-3xl text-black font-bold mb-6">
-            Experience the power of AI transcription with a demo upload.
-          </p>
-          <p className="text-sm text-black-300">
-            Upload any MP3, WAV, OGG, or WEBM audio file (max 15MB).
-          </p>
-        </div>
         <Card className="p-8 bg-white/95 shadow-md relative z-10">
+          <div className="text-center mb-6">
+            <p className="text-2xl md:text-3xl text-black font-bold mb-3">
+              Experience the power of AI transcription with a demo upload.
+            </p>
+            <p className="text-sm text-black-300">
+              Upload any MP3, WAV, OGG, or WEBM audio file (max 15MB).
+            </p>
+          </div>
           <div className="flex flex-col items-center space-y-6">
             {/* Circular background main icon area */}
             <div
