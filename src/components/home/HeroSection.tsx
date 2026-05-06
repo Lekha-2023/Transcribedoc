@@ -27,7 +27,7 @@ const HeroSection = ({ isLoggedIn }: HeroSectionProps) => {
       <div className="absolute inset-0 bg-gradient-to-r from-medical-dark/60 via-medical-dark/45 to-medical-blue/20 pointer-events-none" />
 
       <div className="container mx-auto max-w-5xl relative z-20 flex items-center justify-center">
-        <div className="text-center max-w-3xl px-4">
+        <div className="text-center max-w-3xl px-4 mt-[30px]">
           <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight drop-shadow-md">
             Transform Clinical Audio Into Accurate Medical Documentation
           </h1>
