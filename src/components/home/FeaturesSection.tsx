@@ -29,36 +29,32 @@ const features = [
 const FeaturesSection = () => {
   return (
     <section
-      className="py-20 px-4 bg-white relative"
-      style={{
-        backgroundColor: sectionBgColor, // light pastel background for entire section
-      }}
+      className="py-12 px-4 relative"
+      style={{ backgroundColor: sectionBgColor }}
     >
-      {/* Removed overlay and background image for the section */}
       <div className="container mx-auto max-w-6xl relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-medical-dark">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-medical-dark">
             How TranscribeDoc Works
           </h2>
-          <p className="mt-4 text-lg text-medical-dark max-w-2xl mx-auto">
+          <p className="mt-3 text-base text-gray-600 max-w-2xl mx-auto">
             Our streamlined process converts your medical audio files into accurate transcriptions with just a few clicks.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-items-center">
           {features.map((f) => (
             <Card
               key={f.title}
-              className="flex flex-col items-center justify-center w-full max-w-[320px] h-[320px] bg-white rounded-lg shadow-lg border border-border text-center"
-              style={{ boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)" }}
+              className="flex flex-col items-center justify-center w-full max-w-[300px] p-6 bg-white rounded-lg shadow-sm border border-border text-center"
             >
-              <span className="mb-6 flex items-center justify-center bg-medical-blue/80 rounded-full p-5 shadow-sm">
-                <f.icon className="h-12 w-12 text-white" />
+              <span className="mb-4 flex items-center justify-center bg-medical-blue/70 rounded-full p-4 shadow-sm">
+                <f.icon className="h-8 w-8 text-white" />
               </span>
-              <h3 className="text-xl md:text-2xl font-semibold text-medical-dark mb-2">
+              <h3 className="text-lg font-semibold text-medical-dark mb-2">
                 {f.title}
               </h3>
-              <p className="text-md md:text-lg text-gray-700 font-medium">
+              <p className="text-sm text-gray-600">
                 {f.description}
               </p>
             </Card>
