@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
-import BenefitsSection from "@/components/home/BenefitsSection";
 import DemoUpload from "@/components/home/DemoUpload";
 
 const Index = () => {
@@ -17,7 +16,6 @@ const Index = () => {
       <HeroSection isLoggedIn={isLoggedIn} />
       <FeaturesSection />
       <DemoUpload />
-      <BenefitsSection />
       <Footer />
     </div>
   );
